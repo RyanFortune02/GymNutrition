@@ -30,7 +30,7 @@ SECRET_KEY = 'r6=xz1h@+itz&+l00m^9ouhobam&rqqbq7g@o!szprc19t95!m'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"] #Allowing all hosts
+ALLOWED_HOSTS = ["*"] #Allowing all hosts, change later for prod
 
 """
 JWT Authentication Configuration
@@ -91,6 +91,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "api",
+    "fooddata",
     "rest_framework",
     "corsheaders", #used for cross-origin resource sharing aka when frontend and backend are on different servers
 ]

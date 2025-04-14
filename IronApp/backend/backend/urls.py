@@ -28,4 +28,7 @@ urlpatterns = [
     
     #Keeping all the authentication urls above together, sperate from the app
     path('api/', include('api.urls')), #Include the urls from the api app
+    
+    #Food data in database
+    path('food/', include('fooddata.urls')),
 ]
