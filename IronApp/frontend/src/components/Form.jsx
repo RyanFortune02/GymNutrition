@@ -2,7 +2,6 @@ import { useState } from "react";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants";
-import "../styles/Form.css";
 import LoadingIndicator from "./LoadingIndicator";
 
 function Form({ route, method }) {
@@ -35,24 +34,27 @@ function Form({ route, method }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="form-container">
-      <h1>{name}</h1>
+    <form onSubmit={handleSubmit} className="flex flex-col items-center justify-center mx-auto my-12 p-5 max-w-md rounded-lg shadow-md">
+      <h1 className="text-2xl font-bold mb-4">{name}</h1>
       <input
-        className="form-input"
+        className="w-11/12 p-2.5 my-2.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         type="text"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
         placeholder="Username"
       />
       <input
-        className="form-input"
+        className="w-11/12 p-2.5 my-2.5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         placeholder="Password"
       />
       {loading && <LoadingIndicator />}
-      <button className="form-button" type="submit">
+      <button 
+        className="w-11/12 p-2.5 my-5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors duration-200"
+        type="submit"
+      >
         {name}
       </button>
     </form>
