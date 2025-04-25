@@ -1,5 +1,10 @@
 from django.urls import path
 
+from . import views
+
 urlpatterns = [
-    #URLS for views in FoodData app
+    path(
+        "search/",
+        views.OpenFoodFactsSearchView.as_view(),
+    ),
 ]
