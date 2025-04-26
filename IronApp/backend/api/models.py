@@ -38,6 +38,10 @@ class UserProfile(models.Model):
         allergies: Combined food allergy flags
     """
 
+    MAX_AGE = 200
+    MAX_HEIGHT = 300
+    MAX_WEIGHT = 500
+
     class Sex(models.TextChoices):
         """
         Sex classification options.

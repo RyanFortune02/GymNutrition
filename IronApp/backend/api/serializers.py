@@ -1,29 +1,87 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Note
+from .models import Note, UserProfile
 
-#Uses an ORM (Object RelationalMapping)- maps python objects to corresponding code that needs to be executed in the database
-#JSON eqauals JavaScript Object Notation
-#Serializers are used to convert complex data types, such as querysets and model instances, to native Python datatypes that can then be 
-#easily rendered into JSON, XML or other content types.
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = [
+            "age",
+            "sex",
+            "height",
+            "weight",
+            "activity_level",
+            "food_preferences",
+            "allergies",
+        ]
+
+    def validate_age(self, value):
+        if value < 0 or value > UserProfile.MAX_AGE:
+            raise serializers.ValidationError(
+                f"Age must be between 0 and {UserProfile.MAX_AGE}"
+            )
+        return value
+
+    def validate_sex(self, value):
+        if value not in UserProfile.Sex.values:
+            raise serializers.ValidationError(
+                f"Sex must be one of {UserProfile.Sex.values}"
+            )
+        return value
+
+    def validate_height(self, value):
+        if value < 0 or value > UserProfile.MAX_HEIGHT:
+            raise serializers.ValidationError(
+                f"Height must be between 0 and {UserProfile.MAX_HEIGHT} cm"
+            )
+        return value
+
+    def validate_weight(self, value):
+        if value < 0 or value > UserProfile.MAX_WEIGHT:
+            raise serializers.ValidationError(
+                f"Weight must be between 0 and {UserProfile.MAX_WEIGHT} kg"
+            )
+        return value
+
 
 class UserSerializer(serializers.ModelSerializer):
+    profile = serializers.SerializerMethodField()
+    profile_data = UserProfileSerializer(write_only=True, required=True)
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'password']
-        extra_kwargs = {'password': {'write_only': True}}  #Want to accept password but not return it
-        
+        fields = [
+            "id",
+            "username",
+            "email",
+            "password",
+            "profile",
+            "profile_data",
+        ]
+        extra_kwargs = {"password": {"write_only": True}}
+
+    def get_profile(self, obj):
+        try:
+            profile = UserProfile.objects.get(user=obj)
+            return UserProfileSerializer(profile).data
+        except UserProfile.DoesNotExist:
+            return None
+
     def create(self, validated_data):
-        # Create user with only username and password
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            password=validated_data['password'],
-            email=''  # Provide an empty email string
-        )
+        profile_data = validated_data.pop("profile_data")
+        password = validated_data.pop("password")
+        user = User.objects.create(**validated_data)
+        user.set_password(password)
+        user.save()
+
+        UserProfile.objects.create(user=user, **profile_data)
+
         return user
+
 
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Note
-        fields = ['id', 'title', 'content', 'author', 'created_at']
-        extra_kwargs = {'author': {'read_only': True}} #should be able to read author but not write it (based on account/user)
+        fields = ["id", "title", "content", "author", "created_at"]
+        extra_kwargs = {"author": {"read_only": True}}
