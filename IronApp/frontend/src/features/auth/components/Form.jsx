@@ -1,14 +1,15 @@
 import { useState } from "react";
-import api from "../api";
+import api from "../../auth/api";
 import { useNavigate } from "react-router-dom";
-import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants";
-import LoadingIndicator from "./LoadingIndicator";
+import useAuth from "../hooks/useAuth";
+import LoadingIndicator from "../../../components/LoadingIndicator";
 
 function Form({ route, method }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   //Form states
   const name = method === "login" ? "Login" : "Register";
@@ -20,8 +21,7 @@ function Form({ route, method }) {
     try {
       const res = await api.post(route, { username, password });
       if (method === "login") {
-        localStorage.setItem(ACCESS_TOKEN, res.data.access);
-        localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
+        login(res.data.access, res.data.refresh);
         navigate("/");
       } else {
         navigate("/login");

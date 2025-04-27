@@ -1,20 +1,12 @@
 import { StrictMode } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import Login from "./features/auth/pages/Login";
+import Register from "./features/auth/pages/Register";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
-
-function Logout() {
-  localStorage.clear();
-  return <Navigate to="/login" />;
-}
-
-function RegisterAndLogout() {
-  localStorage.clear(); //So there are no access tokens lingering around in local storage
-  return <Register />;
-}
+import ProfileEdit from "./features/profile/pages/ProfileEdit";
+import Profile from "./features/profile/pages/Profile";
 
 function App() {
   return (
@@ -29,9 +21,9 @@ function App() {
           }
         />
         <Route path="/login" element={<Login />} />
-        <Route path="/logout" element={<Logout />} />
-        <Route path="/register" element={<RegisterAndLogout />} />
-        <Route path="/logout" element={<Logout />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/profile-edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import api from "../api";
+import api from "../features/auth/api";
 import Note from "../components/Note";
 
 function Home() {
