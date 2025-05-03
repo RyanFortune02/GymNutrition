@@ -1,13 +1,13 @@
 import { StrictMode } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Home from "./pages/Home";
 import Login from "./features/auth/pages/Login";
 import Register from "./features/auth/pages/Register";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProfileEdit from "./features/profile/pages/ProfileEdit";
 import Profile from "./features/profile/pages/Profile";
-
+import FoodLogPage from "./features/foodlog/pages/FoodLogPage";
+import DashboardPage from "./features/dashboard/Dashboardpage";
 function App() {
   return (
     <BrowserRouter>
@@ -16,7 +16,7 @@ function App() {
           path="/"
           element={
             <ProtectedRoute>
-              <Home />
+              <DashboardPage />
             </ProtectedRoute>
           }
         />
@@ -24,6 +24,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/profile-edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/food-log" element={<ProtectedRoute><FoodLogPage /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
