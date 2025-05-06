@@ -1,6 +1,9 @@
 from enum import Flag
 from django.db import models
 from django.contrib.auth.models import User
+from datetime import date
+
+from fooddata.models import FoodProduct
 
 
 # Create your models here.
@@ -112,3 +115,54 @@ class UserProfile(models.Model):
         default=FoodPreferences.NONE.value
     )
     allergies = models.PositiveSmallIntegerField(default=Allergies.NONE.value)
+
+
+class MealRecord(models.Model):
+    class MealType(models.TextChoices):
+        """
+        Meal classification options.
+        """
+
+        BREAKFAST = "B"
+        LUNCH = "L"
+        DINNER = "D"
+        SNACK = "S"
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateField(default=date.today)
+    meal_type = models.CharField(max_length=1, choices=MealType)
+    food = models.ForeignKey(FoodProduct, on_delete=models.CASCADE)
+    servings = models.DecimalField(max_digits=5, decimal_places=2, default=1)
+
+    def get_nutrients(self):
+        """
+        Calculate nutrients for this meal record based on servings.
+        """
+
+        nutrients = self.food.nutriments
+        serving_multiplier = float(self.servings)
+
+        return {
+            "calories": nutrients.get("energy-kcal_serving", 0)
+            * serving_multiplier,
+            "protein": nutrients.get("proteins_serving", 0)
+            * serving_multiplier,
+            "fat": nutrients.get("fat_serving", 0) * serving_multiplier,
+            "carbs": nutrients.get("carbohydrates_serving", 0)
+            * serving_multiplier,
+        }
+
+    @classmethod
+    def get_daily_totals(cls, user, date):
+        """
+        Calculate nutrition totals for given user and date.
+        """
+        meals = cls.objects.filter(user=user, date=date)
+        totals = {"calories": 0, "protein": 0, "fat": 0, "carbs": 0}
+
+        for meal in meals:
+            nutrients = meal.get_nutrients()
+            for key in totals:
+                totals[key] += nutrients[key]
+
+        return totals
