@@ -1,16 +1,14 @@
-from django.views import View
-from django.views.decorators.http import require_http_methods
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-from django.core.cache import cache
-from django.http import JsonResponse
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 from openfoodfacts import API, Environment, Country, APIVersion
+from datetime import date
 
-from .serializers import FoodProductSerializer
 from .models import FoodProduct
+from api.models import MealRecord
 
 
-class OpenFoodFactsSearchView(View):
+class OpenFoodFactsSearchView(APIView):
     """
     Search OpenFoodFacts database using the official SDK and convert results to
     FoodProduct model.
@@ -35,11 +33,6 @@ class OpenFoodFactsSearchView(View):
         GET /food/search/?search=nutella&page=1&page_size=20
     """
 
-    @method_decorator(csrf_exempt, name="dispatch")
-    @method_decorator(require_http_methods(["GET"]), name="dispatch")
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-
     def initialize_api(self):
         """
         Initialize OpenFoodFacts API client.
@@ -56,94 +49,74 @@ class OpenFoodFactsSearchView(View):
             print(f"API initialization error: {str(e)}")
             return None
 
-    def get(self, request, *args, **kwargs):
-        """
-        Handle GET requests for OpenFoodFacts searches.
-        """
-
+    def get(self, request):
         try:
-            # Initialize API client
             api = self.initialize_api()
             if not api:
-                return JsonResponse({"error": "API initialization failed"}, status=500)
-
-            products = []
-
-            # Handle barcode search
-            if "code" in request.GET:
-                fields = [
-                    "_id",
-                    "_keywords",
-                    "allergens_tags",
-                    "brands",
-                    "categories_imported",
-                    "complete",
-                    "image_url",
-                    "ingredients_text_en",
-                    "product_name_en",
-                    "nutriments",
-                    "serving_size",
-                ]
-
-                cache_key = f"off_{request.GET['code']}"
-                cached_result = cache.get(cache_key)
-                if cached_result:
-                    return JsonResponse(cached_result)
-
-                result = api.product.get(
-                    code=request.GET["code"], fields=fields, raise_if_invalid=True
+                return Response(
+                    {"error": "API initialization failed"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
 
-                if not result:
-                    return JsonResponse({"error": "Product not found"}, status=404)
-                products = [result]
-
-            # Handle text search
-            else:
-                cache_key = f"off_{request.GET['search']}_{request.GET.get('page', 1)}"
-                cached_result = cache.get(cache_key)
-                if cached_result:
-                    return JsonResponse(cached_result)
-
-                result = api.product.text_search(
-                    query=request.GET["search"],
-                    page=int(request.GET.get("page", 1)),
-                    page_size=int(request.GET.get("page_size", 20)),
+            code = request.GET.get("code")
+            if not code:
+                return Response(
+                    {"error": "No code provided"},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
-                if not result or "products" not in result:
-                    return JsonResponse({"error": "No products found"}, status=404)
-                products = result["products"]
+            result = api.product.get(code=code)
 
-            # Convert products to FoodProduct instances
-            food_products = []
-            for product_data in products:
-                product = FoodProduct(
-                    id=product_data.get("_id", ""),
-                    keywords=product_data.get("_keywords", []),
-                    allergens_tags=product_data.get("allergens_tags", []),
-                    brands=product_data.get("brands", ""),
-                    categories_imported=product_data.get("categories_imported", ""),
-                    complete=product_data.get("complete"),
-                    image_url=product_data.get("image_url", ""),
-                    ingredients_text_en=product_data.get("ingredients_text_en", ""),
-                    product_name_en=product_data.get("product_name_en", ""),
-                    nutriments=product_data.get("nutriments", {}),
-                    serving_size=product_data.get("serving_size", ""),
+            if not result:
+                return Response(
+                    {"error": "Product not found"},
+                    status=status.HTTP_404_NOT_FOUND,
                 )
 
-                serializer = FoodProductSerializer(product)
-                food_products.append(serializer.data)
-
-            # Cache the result
-            cache.set(
-                cache_key,
-                {"results": food_products},
-                60 * 60,  # Cache for 1 hour
+            # Create or update the FoodProduct
+            food_product, _ = FoodProduct.objects.update_or_create(
+                id=code,
+                defaults={
+                    "product_name_en": result.get("product_name_en", ""),
+                    "serving_size": result.get("serving_size", ""),
+                    "nutriments": result.get("nutriments", {}),
+                },
             )
 
-            return JsonResponse({"results": food_products})
+            # Create MealRecord if meal_type is provided
+            meal_record = None
+            if request.GET.get("meal_type"):
+                meal_record, _ = MealRecord.objects.update_or_create(
+                    user=request.user,
+                    date=request.GET.get("date", date.today()),
+                    meal_type=request.GET.get("meal_type"),
+                    food=food_product,
+                    defaults={
+                        "servings": float(request.GET.get("servings", 1))
+                    },
+                )
+
+            # Return response
+            response_data = {
+                "results": {
+                    "code": food_product.id,
+                    "name": food_product.product_name_en,
+                    "serving_size": food_product.serving_size,
+                    "nutriments": food_product.nutriments,
+                }
+            }
+
+            if meal_record:
+                response_data["meal_record"] = {
+                    "date": meal_record.date,
+                    "meal_type": meal_record.meal_type,
+                    "servings": float(meal_record.servings),
+                    "nutrients": meal_record.get_nutrients(),
+                }
+
+            return Response(response_data)
 
         except Exception as e:
-            cache.clear()
-            return JsonResponse({"error": str(e)}, status=500)
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

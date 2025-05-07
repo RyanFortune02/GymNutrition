@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Note, UserProfile
+
+from .models import Note, UserProfile, MealRecord
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -85,3 +86,17 @@ class NoteSerializer(serializers.ModelSerializer):
         model = Note
         fields = ["id", "title", "content", "author", "created_at"]
         extra_kwargs = {"author": {"read_only": True}}
+
+
+class MealRecordSerializer(serializers.ModelSerializer):
+    nutrients = serializers.SerializerMethodField()
+    servings = serializers.DecimalField(
+        max_digits=5, decimal_places=2, coerce_to_string=False
+    )
+
+    class Meta:
+        model = MealRecord
+        fields = ["id", "date", "meal_type", "food", "servings", "nutrients"]
+
+    def get_nutrients(self, obj):
+        return obj.get_nutrients()
