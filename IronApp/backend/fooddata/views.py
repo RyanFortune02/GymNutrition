@@ -4,6 +4,7 @@ from rest_framework import status
 from openfoodfacts import API, Environment, Country, APIVersion
 from datetime import date
 
+from .serializers import FoodProductSerializer
 from .models import FoodProduct
 from api.models import MealRecord
 
@@ -57,62 +58,73 @@ class OpenFoodFactsSearchView(APIView):
                     {"error": "API initialization failed"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
+            products = []
+            if "code" in request.GET:
+                code = request.GET.get("code")
+                result = api.product.get(code=code)
 
-            code = request.GET.get("code")
-            if not code:
-                return Response(
-                    {"error": "No code provided"},
-                    status=status.HTTP_400_BAD_REQUEST,
+                if not result:
+                    return Response(
+                        {"error": "Product not found"},
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+                products = [result]
+            else:
+                result = api.product.text_search(
+                    query=request.GET["search"],
+                    page=int(request.GET.get("page", 1)),
+                    page_size=int(request.GET.get("page_size", 20)),
                 )
 
-            result = api.product.get(code=code)
+                if not result or "products" not in result:
+                    return Response(
+                        {"error": "No products found"},
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
 
-            if not result:
-                return Response(
-                    {"error": "Product not found"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
+                products = result["products"]
 
-            # Create or update the FoodProduct
-            food_product, _ = FoodProduct.objects.update_or_create(
-                id=code,
-                defaults={
-                    "product_name_en": result.get("product_name_en", ""),
-                    "serving_size": result.get("serving_size", ""),
-                    "nutriments": result.get("nutriments", {}),
-                },
-            )
-
-            # Create MealRecord if meal_type is provided
-            meal_record = None
-            if request.GET.get("meal_type"):
-                meal_record, _ = MealRecord.objects.update_or_create(
-                    user=request.user,
-                    date=request.GET.get("date", date.today()),
-                    meal_type=request.GET.get("meal_type"),
-                    food=food_product,
+            food_products = []
+            response_data = {}
+            for product_data in products:
+                # Create or update the FoodProduct
+                food_product, _ = FoodProduct.objects.update_or_create(
+                    id=product_data.get("_id"),
                     defaults={
-                        "servings": float(request.GET.get("servings", 1))
+                        "product_name_en": product_data.get(
+                            "product_name_en", ""
+                        ),
+                        "serving_size": product_data.get("serving_size", ""),
+                        "nutriments": product_data.get("nutriments", {}),
                     },
                 )
+                serializer = FoodProductSerializer(food_product)
+                food_products.append(serializer.data)
+
+                # Create MealRecord if meal_type is provided
+                meal_record = None
+                if "meal_type" in request.GET:
+                    meal_record, _ = MealRecord.objects.update_or_create(
+                        user=request.user,
+                        date=request.GET.get("date", date.today()),
+                        meal_type=request.GET.get("meal_type"),
+                        food=food_product,
+                        defaults={
+                            "servings": float(request.GET.get("servings", 1))
+                        },
+                    )
+                if meal_record:
+                    response_data["meal_record"].append(
+                        {
+                            "date": meal_record.date,
+                            "meal_type": meal_record.meal_type,
+                            "servings": float(meal_record.servings),
+                            "nutrients": meal_record.get_nutrients(),
+                        }
+                    )
 
             # Return response
-            response_data = {
-                "results": {
-                    "code": food_product.id,
-                    "name": food_product.product_name_en,
-                    "serving_size": food_product.serving_size,
-                    "nutriments": food_product.nutriments,
-                }
-            }
-
-            if meal_record:
-                response_data["meal_record"] = {
-                    "date": meal_record.date,
-                    "meal_type": meal_record.meal_type,
-                    "servings": float(meal_record.servings),
-                    "nutrients": meal_record.get_nutrients(),
-                }
+            response_data["results"] = food_products
 
             return Response(response_data)
 
