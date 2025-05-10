@@ -141,7 +141,7 @@ const useFoodLog = () => {
         if (!nutriments) return {};
         
         return {
-            calories: nutriments['energy-kcal_serving'] || nutriments['energy-kcal_100g'] || nutriments['energy-kcal'] || 0,
+            calories: nutriments['energy_kcal_serving'] || nutriments['energy-kcal_serving'] || nutriments['energy-kcal_100g'] || nutriments['energy-kcal'] || 0,
             protein: nutriments['proteins_serving'] || nutriments['proteins_100g'] || 0,
             carbs: nutriments['carbohydrates_serving'] || nutriments['carbohydrates_100g'] || 0,
             fat: nutriments['fat_serving'] || nutriments['fat_100g'] || 0,

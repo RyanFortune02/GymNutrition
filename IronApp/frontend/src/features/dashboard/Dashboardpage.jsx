@@ -2,7 +2,9 @@ import React from 'react';
 import useFoodLog from '../foodlog/hooks/useFoodLog';
 import DailySummary from '../foodlog/components/DailySummary';
 
+import BMRCalculator from './components/BMRCalculator';
 import NavBar from '../../components/NavBar';
+import MacroNutrient from './components/MacroNutrient';
 /*
 Dashboard page for the user to view their daily nutrition overview.
 */
@@ -19,11 +21,18 @@ const DashboardPage = () => {
                     <p className="text-gray-500 mt-2">Your daily nutrition overview</p>
                 </header>
 
-                <DailySummary
-                    meals={meals}
-                    calculateTotalNutrients={calculateTotalNutrients}
-                    calculateDailyTotals={calculateDailyTotals}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <BMRCalculator />
+                    <MacroNutrient />
+                </div>
+                
+                <div>
+                    <DailySummary
+                        meals={meals}
+                        calculateTotalNutrients={calculateTotalNutrients}
+                        calculateDailyTotals={calculateDailyTotals}
+                    />
+                </div>
             </div>
         </>
     );

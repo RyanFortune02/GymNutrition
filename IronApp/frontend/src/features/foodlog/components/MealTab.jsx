@@ -80,7 +80,7 @@ const MealTab = ({ mealType, mealItems, handleRemoveFood, calculateTotalNutrient
                                 <div className="flex items-center space-x-4 bg-white py-1.5 px-3 rounded-lg shadow-sm border border-gray-100">
                                     <div className="text-sm font-medium flex items-center gap-1 text-orange-600">
                                         <Flame size={14} />
-                                        {Math.round(food.nutriments?.['energy-kcal_serving'] || 0)} kcal
+                                        {Math.round(food.nutriments?.['energy_kcal_serving'] || food.nutriments?.['energy-kcal_serving'] || 0)} kcal
                                     </div>
                                     <div className="text-xs flex items-center gap-1">
                                         <Beef size={12} className="text-red-700" />

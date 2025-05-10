@@ -120,8 +120,8 @@ const ResultsList = ({
                                     <div className="text-xs text-gray-500 mb-2">{food.brands}</div>
                                     <div className="text-sm text-[var(--primary-color-teal)] font-medium">
                                         {/* Show calories per serving if available, otherwise display '-' for no calories */}
-                                        {food.nutriments && (food.nutriments['energy-kcal_serving'] || food.nutriments['energy-kcal']) 
-                                            ? `${Math.round(food.nutriments['energy-kcal_serving'] || food.nutriments['energy-kcal'])} kcal per serving`
+                                        {food.nutriments && (food.nutriments?.['energy_kcal_serving'] || food.nutriments?.['energy-kcal_serving'] || food.nutriments?.['energy-kcal']) 
+                                            ? `${Math.round(food.nutriments?.['energy_kcal_serving'] || food.nutriments?.['energy-kcal_serving'] || food.nutriments?.['energy-kcal'])} kcal per serving`
                                             : '- kcal'}
                                     </div>
                                     <div className="text-xs text-gray-500 mt-2 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-x-2 gap-y-1">
