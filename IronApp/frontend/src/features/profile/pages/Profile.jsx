@@ -2,9 +2,12 @@ import useProfile from "../hooks/useProfile";
 import { FOOD_PREF_OPTIONS, ALLERGY_OPTIONS, GENDER_OPTIONS, ACTIVITY_LEVEL_OPTIONS } from "../../formConfig";
 import LoadingIndicator from "../../../components/LoadingIndicator";
 import NavBar from "../../../components/NavBar";
+import { formatHeightImperial, formatWeightImperial } from "../../../utils/unitConversion";
+import { useNavigate } from "react-router-dom";
 
 function Profile() {
   const { profile, loading, error } = useProfile();
+  const navigate = useNavigate();
 
   if (loading) return <LoadingIndicator />;
   if (error) return <div className="text-center text-red-600 mt-8">{error}</div>;
@@ -25,11 +28,17 @@ function Profile() {
           <h1 className="text-2xl font-bold mb-6 text-[color:var(--primary-color-teal)]">My Profile</h1>
           <div className="mb-4"><span className="font-semibold text-[color:var(--primary-color-blue)]">Age:</span> {profile.age}</div>
           <div className="mb-4"><span className="font-semibold text-[color:var(--primary-color-blue)]">Sex:</span> {genderLabel}</div>
-          <div className="mb-4"><span className="font-semibold text-[color:var(--primary-color-blue)]">Height:</span> {profile.height} cm</div>
-          <div className="mb-4"><span className="font-semibold text-[color:var(--primary-color-blue)]">Weight:</span> {profile.weight} kg</div>
+          <div className="mb-4"><span className="font-semibold text-[color:var(--primary-color-blue)]">Height:</span> {formatHeightImperial(profile.height)}</div>
+          <div className="mb-4"><span className="font-semibold text-[color:var(--primary-color-blue)]">Weight:</span> {formatWeightImperial(profile.weight)}</div>
           <div className="mb-4"><span className="font-semibold text-[color:var(--primary-color-blue)]">Activity Level:</span> {activityLabel}</div>
           <div className="mb-4"><span className="font-semibold text-[color:var(--primary-color-blue)]">Food Preferences:</span> {getCheckedLabels(profile.food_preferences, FOOD_PREF_OPTIONS)}</div>
           <div className="mb-4"><span className="font-semibold text-[color:var(--primary-color-blue)]">Allergies:</span> {getCheckedLabels(profile.allergies, ALLERGY_OPTIONS)}</div>
+          <button
+            onClick={() => navigate("/profile-edit")}
+            className="w-full p-3 my-4 bg-gradient-to-r from-[var(--primary-color-teal)] to-[var(--secondary-color-green)] text-white rounded hover:opacity-90 transition-opacity duration-200 font-medium"
+          >
+            Edit Profile
+          </button>
         </div>
       </div>
     </>

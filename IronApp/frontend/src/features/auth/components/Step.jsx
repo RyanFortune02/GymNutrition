@@ -1,6 +1,7 @@
 import React from "react";
 import Field from "./Field";
 import { FOOD_PREF_OPTIONS, ALLERGY_OPTIONS, GENDER_OPTIONS, ACTIVITY_LEVEL_OPTIONS } from "../../formConfig";
+import { formatHeightImperial } from "../../../utils/unitConversion";
 
 /*
 Step component
@@ -26,6 +27,19 @@ export default function Step({ config, formData, setField, inputRef }) {
         return options.filter(opt => (intVal & opt.value)).map(opt => opt.label).join(", ") || "None";
       }
       return "None";
+    };
+    // Format height and weight for review
+    const getReviewValue = (key, val) => {
+      if (key === "height") {
+        if (!val || typeof val !== 'object') return '';
+        const feet = val.feet || 0;
+        const inches = val.inches || 0;
+        return `${feet}' ${inches}"`;
+      }
+      if (key === "weight") {
+        return val !== undefined && val !== null && val !== '' ? `${val} lbs` : '';
+      }
+      return val;
     };
     return (
       <div>
@@ -68,7 +82,7 @@ export default function Step({ config, formData, setField, inputRef }) {
           }
           return (
             <div key={key} className="mb-2">
-              <span className="font-semibold capitalize">{key.replace(/_/g, ' ')}:</span> {val}
+              <span className="font-semibold capitalize">{key.replace(/_/g, ' ')}:</span> {getReviewValue(key, val)}
             </div>
           );
         })}

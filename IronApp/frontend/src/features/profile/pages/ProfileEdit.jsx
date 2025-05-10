@@ -1,28 +1,54 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useProfile from "../hooks/useProfile";
 import { FOOD_PREF_OPTIONS, ALLERGY_OPTIONS, GENDER_OPTIONS, ACTIVITY_LEVEL_OPTIONS } from "../../formConfig";
 import LoadingIndicator from "../../../components/LoadingIndicator";
 import NavBar from "../../../components/NavBar";
+import CheckboxGroup from "../../../components/CheckboxGroup";
+import HeightInput from "../../../components/HeightInput";
+import WeightInput from "../../../components/WeightInput";
+import { cmToFeetInches, feetInchesToCm, kgToLbs, lbsToKg } from "../../../utils/unitConversion";
 
 function ProfileEdit() {
   const { profile, loading, error, updateProfile } = useProfile();
+  const [formData, setFormData] = useState({});
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
 
+  // Get the profile data and convert cm/kg to feet/inches and pounds
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        ...profile,
+        height: cmToFeetInches(profile.height),
+        weight: kgToLbs(profile.weight),
+      });
+    }
+  }, [profile]);
+
+  // Handle changes to formData
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // Update profile object with new value
-    profile[name] = value;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
+  // On submit, convert imperial to metric for backend
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     try {
-      await updateProfile(profile);
+      const payload = {
+        ...formData,
+        height: feetInchesToCm(formData.height.feet, formData.height.inches),
+        weight: lbsToKg(formData.weight),
+      };
+      await updateProfile(payload); // Update the profile with the new form data
       navigate("/profile"); // Redirect to profile page
     } catch (err) {
+      console.error("Failed to update profile:", err);
     } finally {
       setSaving(false);
     }
@@ -34,107 +60,99 @@ function ProfileEdit() {
     <>
       <NavBar />
       <div className="container mx-auto px-4 py-8">
-        <form className="max-w-md mx-auto my-12 p-8 bg-white rounded-lg shadow-md border border-gray-200" onSubmit={handleSubmit}>
+        <form className="max-w-xl mx-auto my-12 p-8 bg-white rounded-lg shadow-md border border-gray-200" onSubmit={handleSubmit}>
           <h2 className="text-2xl font-bold mb-6 text-[var(--primary-color-teal)]">Edit Profile</h2>
           {error && <div className="text-red-500 mb-4">{error}</div>}
           
-          <div className="mb-4">
+          <div className="mb-6">
             <label className="block text-[var(--neutral-color-blue)] text-sm font-medium mb-2">Age</label>
             <input
               className="w-full p-2.5 border border-gray-300 rounded focus:ring-[var(--primary-color-teal)] focus:border-[var(--primary-color-teal)] focus:outline-none"
               type="number"
               name="age"
-              value={profile.age}
+              value={formData.age || ""}
               onChange={handleChange}
               placeholder="Age"
               required
             />
           </div>
           
-          <div className="mb-4">
+          <div className="mb-6">
             <label className="block text-[var(--neutral-color-blue)] text-sm font-medium mb-2">Sex</label>
             <select
               className="w-full p-2.5 border border-gray-300 rounded focus:ring-[var(--primary-color-teal)] focus:border-[var(--primary-color-teal)] focus:outline-none"
               name="sex"
-              value={profile.sex}
+              value={formData.sex || ""}
               onChange={handleChange}
               required
             >
+              <option value="">Select sex</option>
               {GENDER_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
           </div>
           
-          <div className="mb-4">
-            <label className="block text-[var(--neutral-color-blue)] text-sm font-medium mb-2">Height (cm)</label>
-            <input
-              className="w-full p-2.5 border border-gray-300 rounded focus:ring-[var(--primary-color-teal)] focus:border-[var(--primary-color-teal)] focus:outline-none"
-              type="number"
+          <div className="mb-6">
+            <label className="block text-[var(--neutral-color-blue)] text-sm font-medium mb-2">Height</label>
+            <HeightInput 
               name="height"
-              value={profile.height}
+              value={formData.height}
               onChange={handleChange}
-              placeholder="Height (cm)"
-              required
+              className="mt-1"
             />
           </div>
           
-          <div className="mb-4">
-            <label className="block text-[var(--neutral-color-blue)] text-sm font-medium mb-2">Weight (kg)</label>
-            <input
-              className="w-full p-2.5 border border-gray-300 rounded focus:ring-[var(--primary-color-teal)] focus:border-[var(--primary-color-teal)] focus:outline-none"
-              type="number"
+          <div className="mb-6">
+            <label className="block text-[var(--neutral-color-blue)] text-sm font-medium mb-2">Weight</label>
+            <WeightInput
               name="weight"
-              value={profile.weight}
+              value={formData.weight}
               onChange={handleChange}
-              placeholder="Weight (kg)"
-              required
+              className="mt-1"
             />
           </div>
           
-          <div className="mb-4">
+          <div className="mb-6">
             <label className="block text-[var(--neutral-color-blue)] text-sm font-medium mb-2">Activity Level</label>
             <select
               className="w-full p-2.5 border border-gray-300 rounded focus:ring-[var(--primary-color-teal)] focus:border-[var(--primary-color-teal)] focus:outline-none"
               name="activity_level"
-              value={profile.activity_level}
+              value={formData.activity_level || ""}
               onChange={handleChange}
               required
             >
+              <option value="">Select activity level</option>
               {ACTIVITY_LEVEL_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
           </div>
           
-          <div className="mb-4">
+          <div className="mb-6">
             <label className="block text-[var(--neutral-color-blue)] text-sm font-medium mb-2">Food Preferences</label>
-            <select
-              className="w-full p-2.5 border border-gray-300 rounded focus:ring-[var(--primary-color-teal)] focus:border-[var(--primary-color-teal)] focus:outline-none"
-              name="food_preferences"
-              value={profile.food_preferences}
-              onChange={handleChange}
-              required
-            >
-              {FOOD_PREF_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
+            <div className="p-4 border border-gray-200 rounded-md bg-gray-50">
+              <CheckboxGroup
+                name="food_preferences"
+                options={FOOD_PREF_OPTIONS}
+                value={formData.food_preferences || 0}
+                onChange={handleChange}
+              />
+            </div>
+            <p className="mt-1 text-xs text-gray-500">Select all that apply</p>
           </div>
           
-          <div className="mb-4">
+          <div className="mb-6">
             <label className="block text-[var(--neutral-color-blue)] text-sm font-medium mb-2">Allergies</label>
-            <select
-              className="w-full p-2.5 border border-gray-300 rounded focus:ring-[var(--primary-color-teal)] focus:border-[var(--primary-color-teal)] focus:outline-none"
-              name="allergies"
-              value={profile.allergies}
-              onChange={handleChange}
-              required
-            >
-              {ALLERGY_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
+            <div className="p-4 border border-gray-200 rounded-md bg-gray-50">
+              <CheckboxGroup
+                name="allergies"
+                options={ALLERGY_OPTIONS}
+                value={formData.allergies || 0}
+                onChange={handleChange}
+              />
+            </div>
+            <p className="mt-1 text-xs text-gray-500">Select all that apply</p>
           </div>
           
           <button

@@ -63,8 +63,8 @@ export const steps = [
     fields: [
       { name: "age", label: "Age", type: "number", required: true },
       { name: "sex", label: "Sex", type: "select", required: true, options: GENDER_OPTIONS },
-      { name: "height", label: "Height (cm)", type: "number", required: true },
-      { name: "weight", label: "Weight (kg)", type: "number", required: true },
+      { name: "height", label: "Height (ft, in)", type: "custom", required: true },
+      { name: "weight", label: "Weight (lbs)", type: "custom", required: true },
       { name: "activity_level", label: "Activity Level", type: "select", required: true, options: ACTIVITY_LEVEL_OPTIONS },
     ],
   },

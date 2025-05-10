@@ -7,7 +7,7 @@ import { formReducer } from "./useFormReducer";
 import api from "../../auth/api";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
-
+import { feetInchesToCm, lbsToKg } from "../../../utils/unitConversion";
 /* MultiStepForm component is a form that allows users to fill out multiple steps to complete Registration.
 */
 
@@ -17,8 +17,15 @@ const variants = {
   exit: (dir) => ({ x: dir > 0 ? -300 : 300, opacity: 0 }),
 };
 
+// Get initial value for a field to be used in the form
+const getInitialValue = (field) => {
+  if (field.type === "checkboxGroup") return [];
+  if (field.name === "height" || field.name === "weight") return ""; 
+  return "";
+};
+
 const initialData = steps.reduce((acc, s) => {
-  if (s.fields) s.fields.forEach(f => acc[f.name] = f.type === "checkboxGroup" ? [] : "");
+  if (s.fields) s.fields.forEach(f => acc[f.name] = getInitialValue(f));
   return acc;
 }, {});
 
@@ -57,6 +64,10 @@ export default function MultiStepForm({ route = "/api/user/register/", method = 
     if (cfg.review) return true;
     return cfg.fields.every(f => {
       const val = formData[f.name];
+      // Height and weight need to be validated by the components to ensure they are within the valid range
+      if ((f.name === "height" || f.name === "weight") && f.required) {
+        return val !== undefined && val !== null && val !== "";
+      }
       if (f.required && (val === "" || val === undefined || (Array.isArray(val) && val.length === 0))) return false;
       return !f.validate || f.validate(val);
     });
@@ -77,11 +88,15 @@ export default function MultiStepForm({ route = "/api/user/register/", method = 
         profile_data: {
           age: Number(formData.age),
           sex: formData.sex,
-          height: Number(formData.height),
-          weight: Number(formData.weight),
+          height: feetInchesToCm(formData.height?.feet, formData.height?.inches),
+          weight: lbsToKg(formData.weight),
           activity_level: Number(formData.activity_level),
-          food_preferences: (formData.food_preferences || []).reduce((a, b) => a | b, 0),
-          allergies: (formData.allergies || []).reduce((a, b) => a | b, 0),
+          food_preferences: Array.isArray(formData.food_preferences) 
+            ? formData.food_preferences.reduce((a, b) => a | b, 0)
+            : Number(formData.food_preferences) || 0,
+          allergies: Array.isArray(formData.allergies)
+            ? formData.allergies.reduce((a, b) => a | b, 0)
+            : Number(formData.allergies) || 0,
         }
       };
       if (method === "register") {
