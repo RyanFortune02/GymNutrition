@@ -8,6 +8,8 @@ import ProfileEdit from "./features/profile/pages/ProfileEdit";
 import Profile from "./features/profile/pages/Profile";
 import FoodLogPage from "./features/foodlog/pages/FoodLogPage";
 import DashboardPage from "./features/dashboard/Dashboardpage";
+import WeightTracker from "./features/weight/pages/WeightTracker";
+
 function App() {
   return (
     <BrowserRouter>
@@ -25,6 +27,7 @@ function App() {
         <Route path="/profile-edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/food-log" element={<ProtectedRoute><FoodLogPage /></ProtectedRoute>} />
+        <Route path="/weight-tracker" element={<ProtectedRoute><WeightTracker /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

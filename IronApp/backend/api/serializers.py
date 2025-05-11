@@ -12,6 +12,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "sex",
             "height",
             "weight",
+            "weight_history",
             "activity_level",
             "food_preferences",
             "allergies",
