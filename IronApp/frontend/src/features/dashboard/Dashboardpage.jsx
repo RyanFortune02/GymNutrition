@@ -1,6 +1,7 @@
 import React from 'react';
 import useFoodLog from '../foodlog/hooks/useFoodLog';
 import DailySummary from '../foodlog/components/DailySummary';
+import WeightCharts from './components/WeightCharts';
 
 import BMRCalculator from './components/BMRCalculator';
 import NavBar from '../../components/NavBar';
@@ -24,6 +25,11 @@ const DashboardPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <BMRCalculator />
                     <MacroNutrient />
+                </div>
+                
+                {/* Weight Charts with toggleable views */}
+                <div className="mb-8">
+                    <WeightCharts />
                 </div>
                 
                 <div>
