@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { Menu, X, User, Book, Home, LogOut, Weight } from 'lucide-react'
+import { Menu, X, User, Book, Home, LogOut, Weight, Calendar } from 'lucide-react'
 import useAuth from '../features/auth/hooks/useAuth'
 import logoGym from '../assets/logoGym.png'
 
@@ -17,6 +17,7 @@ export default function NavBar() {
   const navigation = [
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Food Log', href: '/food-log', icon: Book },
+    { name: 'Future Tracking', href: '/future-tracking', icon: Calendar },
     { name: 'Profile', href: '/profile', icon: User },
     { name: 'Weight Tracker', href: '/weight-tracker', icon: Weight },
   ]
