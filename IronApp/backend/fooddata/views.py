@@ -49,6 +49,7 @@ class OpenFoodFactsSearchView(APIView):
                 version=APIVersion.v2,
                 environment=Environment.org,
                 country=Country.us,
+                timeout=30, # added timeout for api requests
             )
         except Exception as e:
             logger.error("OpenFoodFacts API initialization failed.")

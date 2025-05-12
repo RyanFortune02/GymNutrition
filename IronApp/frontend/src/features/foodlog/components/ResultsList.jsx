@@ -79,10 +79,8 @@ const ResultsList = ({
     return (
         <div className="relative bg-white rounded-xl shadow-md p-6 w-full">
              <div className="flex justify-between items-center mb-4 px-1">
-                    <h3 className="text-lg font-medium flex items-center gap-2">
-                        <Pizza size={18} className="text-[var(--secondary-color-green)]" />
-                        Search Results {isLoading && <LoadingIndicator size="sm" />}
-                    </h3>
+                {/* Title is now rendered in FoodLogPage */}
+                <span></span> {/* Placeholder to keep button aligned right */}
                  <button 
                     onClick={onClearResults}
                     className="text-sm text-gray-500 hover:text-red-500 flex items-center hover:bg-red-50 py-1 px-2 rounded-md transition-colors"
