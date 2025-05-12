@@ -1,6 +1,7 @@
 // useAuth: Centralized authentication logic for login, logout, and token state
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from 'axios';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants";
 import api from "../../auth/api";
 
@@ -34,10 +35,13 @@ export default function useAuth() {
     navigate("/login");
   }, [navigate]);
 
-  // Register: create a new user and auto-login
+  //register: create a new user and auto-login
   const register = useCallback(async (payload) => {
-    await api.post("/api/user/register/", payload);
-    // Auto-login after registration
+    //use direct axios.post for registration
+    const baseURL = import.meta.env.VITE_API_URL;
+    await axios.post(`${baseURL}/api/user/register/`, payload);
+
+    //auto-login after registration using api instance
     const loginRes = await api.post("/api/token/", { username: payload.username, password: payload.password });
     login(loginRes.data.access, loginRes.data.refresh);
   }, [login]);

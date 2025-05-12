@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import User
 
 class FoodProduct(models.Model):
     """
@@ -51,3 +51,18 @@ class FoodProduct(models.Model):
     product_name_en = models.CharField(max_length=255)
     nutriments = models.JSONField(default=dict)
     serving_size = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.product_name_en or 'Unknown Product'} ({self.id})"
+
+class UserRecentFood(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    food_product = models.ForeignKey(FoodProduct, on_delete=models.CASCADE)
+    accessed_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'food_product')
+        ordering = ['-accessed_at']
+
+    def __str__(self):
+        return f"{self.user.username} accessed {self.food_product.id} at {self.accessed_at}"

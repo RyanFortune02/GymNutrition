@@ -89,22 +89,33 @@ const useFoodLog = () => {
             setTotalResults(count);
             setTotalPages(calculatedTotalPages);
             setCurrentPage(page);
-            setRetryCount(0);
+            setRetryCount(0); //reset retry count on success
         } catch (error) {
-            if (error.response?.status === 500 &&
-                error.response?.data?.error?.includes('Read timed out')) {
+            const status = error.response?.status;
+            const message = error.response?.data?.error || error.message || 'an unknown error occurred.';
+
+            if (status === 504) { //gateway timeout
                 if (retryCount < MAX_RETRIES) {
                     setRetryCount(prev => prev + 1);
-                    setError('Search timed out. Retrying...');
+                    setError('Search timed out. Retrying...'); 
                 } else {
                     setError('Search timed out after multiple attempts. Please try again later.');
                 }
-            } else {
-                setError(error.response?.data?.error || error.message || 'Failed to fetch food items');
+            } else if (status === 503 || status === 502) { //service unavailable or bad gateway
+                setError(message); //use the message from our backend
+                //no retries for these
+            } else if (status === 404) { //not found
+                setError(message); //use the message from our backend
+                setSearchResults([]); //clear any previous results
+                setTotalResults(0);
+            } else if (status === 400) { //bad request
+                setError(message); //use the message from our backend
+            } else { //fallback for other errors
+                setError(message || 'Failed to fetch food items. Please check your connection or try again.');
             }
         } finally {
             setIsLoading(false);
-        }
+        } 
     };
 
     // Debounce search to prevent multiple requests to the API

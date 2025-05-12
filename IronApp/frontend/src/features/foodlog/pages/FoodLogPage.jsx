@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import useFoodLog from '../hooks/useFoodLog';
 import SearchForm from '../components/SearchForm';
 import ResultsList from '../components/ResultsList';
 import MealTab from '../components/MealTab';
 import { Utensils, Calendar } from 'lucide-react';
 import NavBar from '../../../components/NavBar';
+import api from '../../auth/api';
 
 const FoodLogPage = () => {
     const {
@@ -15,20 +16,74 @@ const FoodLogPage = () => {
         searchQuery,
         selectedMeal,
         setMealType,
-        handleSearch,
-        handleAddFood,
+        handleSearch: originalHandleSearch,
+        handleAddFood: originalHandleAddFood,
         handleRemoveFood,
         calculateTotalNutrients,
-        calculateDailyTotals,
-        isLoading,
-        error,
+        isLoading: isSearchLoading,
+        error: searchError,
         currentPage,
         totalPages,
         handlePageChange,
-        searchMode, 
+        searchMode,
         setSearchMode,
-        clearSearchResults
+        clearSearchResults: originalClearSearchResults
     } = useFoodLog();
+
+    const [recentSearches, setRecentSearches] = useState([]);
+    const [isRecentLoading, setIsRecentLoading] = useState(false);
+    const [recentError, setRecentError] = useState(null);
+    const [displayMode, setDisplayMode] = useState('recent');
+
+    useEffect(() => {
+        if (displayMode === 'recent') {
+            const fetchRecentItems = async () => {
+                setIsRecentLoading(true);
+                setRecentError(null);
+                try {
+                    const response = await api.get('/food/recent/');
+                    setRecentSearches(response.data || []);
+                } catch (err) {
+                    console.error("Failed to fetch recent searches:", err);
+                    setRecentError('Failed to load recent searches.');
+                } finally {
+                    setIsRecentLoading(false);
+                }
+            };
+            fetchRecentItems();
+        }
+    }, [displayMode]);
+
+    const handleSearch = (e) => {
+        if (e && typeof e.preventDefault === 'function') {
+          e.preventDefault();
+        }
+        setDisplayMode('search');
+        originalHandleSearch(); 
+    };
+
+    const clearSearchResults = () => {
+        originalClearSearchResults();
+        setDisplayMode('recent'); 
+    };
+
+    const handleSelectFood = async (foodItem) => {
+        originalHandleAddFood(foodItem, selectedMeal);
+
+        if (displayMode === 'search' && foodItem && foodItem.id) {
+            try {
+                await api.post('/food/recent/', { food_product_id: foodItem.id });
+            } catch (postError) {
+                console.error("Failed to add food to recent searches:", postError);
+            }
+        }
+    };
+
+    const resultsToShow = displayMode === 'recent' ? recentSearches : searchResults;
+    const isLoading = displayMode === 'recent' ? isRecentLoading : isSearchLoading;
+    const error = displayMode === 'recent' ? recentError : searchError;
+    const showPagination = displayMode === 'search' && totalPages > 1;
+    const listTitle = displayMode === 'recent' ? 'Recent Searches' : 'Search Results';
 
     return (
         <>
@@ -58,24 +113,28 @@ const FoodLogPage = () => {
                                     setSearchInput={setSearchInput}
                                     searchMode={searchMode}
                                     setSearchMode={setSearchMode}
-                                    handleSearch={handleSearch}
+                                    handleSearch={handleSearch} 
                                     selectedMeal={selectedMeal}
                                     setMealType={setMealType}
-                                    isLoading={isLoading}
+                                    isLoading={isSearchLoading} 
                                 />
                                 
-                                {/* Results List */}
+                                {/* Results List Area */}
                                 <div className="mt-6">
+                                     {/* add title */}
+                                     <h2 className="text-xl font-semibold mb-3 text-gray-700">{listTitle}</h2>
+                                     {/* use conditional data/state */}
                                     <ResultsList 
-                                        searchResults={searchResults}
+                                        searchResults={resultsToShow}
                                         isLoading={isLoading}
                                         error={error}
-                                        handleAddFood={handleAddFood}
-                                        currentPage={currentPage}
-                                        totalPages={totalPages}
-                                        onPageChange={handlePageChange}
-                                        searchInput={searchQuery}
-                                        onClearResults={clearSearchResults}
+                                        handleAddFood={handleSelectFood} 
+                                        onClearResults={clearSearchResults} 
+                                        searchInput={displayMode === 'search' ? searchQuery : ''}
+                                        currentPage={showPagination ? currentPage : 1}
+                                        totalPages={showPagination ? totalPages : 1}
+                                        onPageChange={showPagination ? handlePageChange : () => {}}
+                                        showPagination={showPagination} 
                                     />
                                 </div>
                             </div>
@@ -93,7 +152,7 @@ const FoodLogPage = () => {
                     </div>
                     
                     <footer className="mt-16 text-center text-gray-500 text-sm pb-8">
-                        <p>Track your nutrition journey with GymNutrition © {new Date().getFullYear()}</p>
+                        <p>Track your nutrition journey with GymNutrition {new Date().getFullYear()}</p>
                     </footer>
                 </div>
             </div>
@@ -102,4 +161,3 @@ const FoodLogPage = () => {
 };
 
 export default FoodLogPage;
- 

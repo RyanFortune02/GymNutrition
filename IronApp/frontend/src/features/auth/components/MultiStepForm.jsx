@@ -1,5 +1,5 @@
 import React, { useReducer, useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { steps } from "../../formConfig";
 import Step from "./Step";
 import ProgressBar from "./ProgressBar";
@@ -44,7 +44,7 @@ export default function MultiStepForm({ route = "/api/user/register/", method = 
   const navigate = useNavigate();
   const { register } = useAuth();
 
-  useEffect(() => { if (refs[step] && refs[step].current) refs[step].current.focus(); }, [step]);
+  useEffect(() => { if (refs[step] && refs[step].current) refs[step].current.focus(); }, [step, refs]);
 
   useEffect(() => {
     const onKey = e => {
@@ -55,7 +55,7 @@ export default function MultiStepForm({ route = "/api/user/register/", method = 
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [step, formData]);
+  }, [step, formData, handleNext, handleBack, canNext, dispatch]);
 
   const setField = (name, value) => dispatch({ type: "SET_FIELD", field: name, value });
 
@@ -101,7 +101,6 @@ export default function MultiStepForm({ route = "/api/user/register/", method = 
       };
       if (method === "register") {
         await register(payload);
-        alert("Registered successfully!");
         if (onSuccess) onSuccess();
         else navigate("/");
       } else {

@@ -1,10 +1,17 @@
 from django.urls import path
-
-from . import views
+# Import both views
+from .views import OpenFoodFactsSearchView, UserRecentFoodView
 
 urlpatterns = [
     path(
         "search/",
-        views.OpenFoodFactsSearchView.as_view(),
+        OpenFoodFactsSearchView.as_view(),
+        name="food_search", # /good practice to name urls
+    ),
+    # /add url for recent foods
+    path(
+        "recent/",
+        UserRecentFoodView.as_view(),
+        name="food_recent", # /name for the recent foods url
     ),
 ]
