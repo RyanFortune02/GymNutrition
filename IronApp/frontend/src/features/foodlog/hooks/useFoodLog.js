@@ -110,23 +110,19 @@ const useFoodLog = () => {
                 setError(message); //use the message from our backend
                 //no retries for these
             } else if (status === 404) { //not found
-                setError(message); //use the message from our backend
                 setSearchResults([]); //clear any previous results
-                // display error message if brand/barcode search fails
-                if (searchMode === 'brand' || searchMode === 'barcode') {
-                    setError(`${searchMode === 'brand' ? 'Brand' : 'Barcode'} search failed. Please try a different search method.`);
+                setTotalResults(0); //reset total results on not found
+
+                //handle specific error messages for different search modes
+                if (searchMode === 'brand') {
+                    setError('Brand search failed. Please try a different search method.');
+                } else if (searchMode === 'barcode') {
+                    //provide a more specific message for barcode searches
+                    setError(`No product found with barcode "${q}"`); 
                 } else {
-                    setError(message);
+                    //use the backend message for other 'not found' scenarios
+                    setError(message); 
                 }
-            
-            } else if (status === 404) {
-                if (searchMode === 'barcode') {
-                    setError(`No product found with barcode "${q}"`);
-                } else {
-                    setError(message);
-                }
-                setSearchResults([]); // clear any previous results
-                setTotalResults(0);
             } else if (status === 400) { //bad request
                 setError(message); //use the message from our backend
             } else { //fallback for other errors

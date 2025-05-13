@@ -39,6 +39,7 @@ class UserProfile(models.Model):
         activity_level: Physical activity level (0 = None, 4 = Very High)
         food_preferences: Combined dietary preference flags
         allergies: Combined food allergy flags
+        dark_mode_enabled: Boolean indicating if dark mode is enabled (default: False)
     """
 
     MAX_AGE = 200
@@ -115,6 +116,7 @@ class UserProfile(models.Model):
         default=FoodPreferences.NONE.value
     )
     allergies = models.PositiveSmallIntegerField(default=Allergies.NONE.value)
+    dark_mode_enabled = models.BooleanField(default=False)
 
 
 class MealRecord(models.Model):

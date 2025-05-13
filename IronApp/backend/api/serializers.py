@@ -16,6 +16,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "activity_level",
             "food_preferences",
             "allergies",
+            "dark_mode_enabled",
         ]
 
     def validate_age(self, value):
