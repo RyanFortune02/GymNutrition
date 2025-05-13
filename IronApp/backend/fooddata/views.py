@@ -186,7 +186,9 @@ class OpenFoodFactsSearchView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-# --- New View for Recent Foods ---
+'''
+# New View for Recent Foods 
+'''
 class UserRecentFoodView(APIView):
     # require user to be logged in
     permission_classes = [permissions.IsAuthenticated]
