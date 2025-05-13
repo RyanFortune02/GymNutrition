@@ -20,8 +20,58 @@ const useFoodLog = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [totalResults, setTotalResults] = useState(0);
     const [retryCount, setRetryCount] = useState(0);
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const [mealsHistory, setMealsHistory] = useState({});
     const MAX_RETRIES = 3;
     const PAGE_SIZE = 5;
+
+    // Format date to YYYY-MM-DD for use as keys in the meals history
+    const formatDate = (date) => {
+        return date.toISOString().split('T')[0];
+    };
+
+    // Get the current date key
+    const currentDateKey = useMemo(() => formatDate(selectedDate), [selectedDate]);
+
+    // Load meals for the selected date when the date changes
+    useEffect(() => {
+        // If we have meals for this date in history, load them
+        if (mealsHistory[currentDateKey]) {
+            setMeals(mealsHistory[currentDateKey]);
+        } else {
+            // Initialize empty meals for new date
+            setMeals({
+                breakfast: [],
+                lunch: [],
+                dinner: [],
+                snack: []
+            });
+        }
+    }, [currentDateKey, mealsHistory]);
+
+    // Navigate to previous day
+    const goToPreviousDay = () => {
+        const prevDate = new Date(selectedDate);
+        prevDate.setDate(prevDate.getDate() - 1);
+        setSelectedDate(prevDate);
+    };
+
+    // Navigate to next day
+    const goToNextDay = () => {
+        const nextDate = new Date(selectedDate);
+        nextDate.setDate(nextDate.getDate() + 1);
+        setSelectedDate(nextDate);
+    };
+
+    // Navigate to specific day
+    const goToDate = (date) => {
+        setSelectedDate(new Date(date));
+    };
+
+    // Return to today
+    const goToToday = () => {
+        setSelectedDate(new Date());
+    };
 
     // Clear the search results when the user wants to search for a new item
     const clearSearchResults = useCallback(() => {
@@ -193,10 +243,20 @@ const useFoodLog = () => {
         };
         
         // Add the new item to the selected meal
-        setMeals(prev => ({
-            ...prev,
-            [selectedMeal]: [...prev[selectedMeal], newItem]
-        }));
+        setMeals(prev => {
+            const updatedMeals = {
+                ...prev,
+                [selectedMeal]: [...prev[selectedMeal], newItem]
+            };
+            
+            // Update the meal history for the current date
+            setMealsHistory(prevHistory => ({
+                ...prevHistory,
+                [currentDateKey]: updatedMeals
+            }));
+            
+            return updatedMeals;
+        });
         
         // Set a timeout to remove the highlight after 1.5 seconds
         setTimeout(() => {
@@ -209,20 +269,38 @@ const useFoodLog = () => {
                     return item;
                 });
                 
-                return {
+                const updatedMeals = {
                     ...prev,
                     [selectedMeal]: updatedMeal
                 };
+                
+                // Update the meal history for the current date
+                setMealsHistory(prevHistory => ({
+                    ...prevHistory,
+                    [currentDateKey]: updatedMeals
+                }));
+                
+                return updatedMeals;
             });
         }, 1500);
     };
 
     // Remove the food item from the selected meal
     const handleRemoveFood = (mealType, index) => {
-        setMeals(prev => ({
-            ...prev,
-            [mealType]: prev[mealType].filter((_, i) => i !== index)
-        }));
+        setMeals(prev => {
+            const updatedMeals = {
+                ...prev,
+                [mealType]: prev[mealType].filter((_, i) => i !== index)
+            };
+            
+            // Update the meal history for the current date
+            setMealsHistory(prevHistory => ({
+                ...prevHistory,
+                [currentDateKey]: updatedMeals
+            }));
+            
+            return updatedMeals;
+        });
     };
 
     // Memoize nutrient calculations for each meal to prevent recalculations on every render
@@ -308,7 +386,13 @@ const useFoodLog = () => {
         totalPages,
         totalResults,
         handlePageChange,
-        clearSearchResults
+        clearSearchResults,
+        selectedDate,
+        goToPreviousDay,
+        goToNextDay,
+        goToDate,
+        goToToday,
+        formatDate
     };
 };
 
