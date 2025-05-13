@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import LoadingIndicator from "../../../components/LoadingIndicator";
 
-function Form({ route, method }) {
+function Form({ route, method, onSuccess, onError }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,12 +22,19 @@ function Form({ route, method }) {
       const res = await api.post(route, { username, password });
       if (method === "login") {
         login(res.data.access, res.data.refresh);
-        navigate("/");
+        if (onSuccess) onSuccess();
+        else navigate("/");
       } else {
         navigate("/login");
       }
     } catch (error) {
-      alert(error);
+      if (error.response?.status === 401) {
+        if (onError) onError("Invalid username or password. Please try again.");
+        else alert("Invalid username or password");
+      } else {
+        if (onError) onError(error.response?.data?.detail || error.message);
+        else alert(error);
+      }
     } finally {
       setLoading(false);
     }
