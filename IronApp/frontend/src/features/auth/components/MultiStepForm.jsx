@@ -1,5 +1,5 @@
 import React, { useReducer, useState, useRef, useEffect } from "react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { steps } from "../../formConfig";
 import Step from "./Step";
 import ProgressBar from "./ProgressBar";
@@ -44,18 +44,12 @@ export default function MultiStepForm({ route = "/api/user/register/", method = 
   const navigate = useNavigate();
   const { register } = useAuth();
 
-  useEffect(() => { if (refs[step] && refs[step].current) refs[step].current.focus(); }, [step, refs]);
-
+  // Render the focus on the current step when the step changes
   useEffect(() => {
-    const onKey = e => {
-      if (e.key === "Enter") { e.preventDefault(); if (step < steps.length-1 && canNext()) handleNext(); }
-      if (e.key === "ArrowRight") { if (step < steps.length-1 && canNext()) handleNext(); }
-      if (e.key === "ArrowLeft" && step > 0) handleBack();
-      if (e.key === "Escape") { dispatch({ type: "RESET", payload: initialData }); setStep(0); }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [step, formData, handleNext, handleBack, canNext, dispatch]);
+    if (refs[step] && refs[step].current) {
+      refs[step].current.focus();
+    }
+  }, [step]); // step is the only dependency
 
   const setField = (name, value) => dispatch({ type: "SET_FIELD", field: name, value });
 
@@ -75,6 +69,18 @@ export default function MultiStepForm({ route = "/api/user/register/", method = 
 
   const handleNext = () => { setDir(1); setStep(s => s + 1); };
   const handleBack = () => { setDir(-1); setStep(s => s - 1); };
+
+  // Manage the keyboard navigation
+  useEffect(() => {
+    const onKey = e => {
+      if (e.key === "Enter") { e.preventDefault(); if (step < steps.length-1 && canNext()) handleNext(); }
+      if (e.key === "ArrowRight") { if (step < steps.length-1 && canNext()) handleNext(); }
+      if (e.key === "ArrowLeft" && step > 0) handleBack();
+      if (e.key === "Escape") { dispatch({ type: "RESET", payload: initialData }); setStep(0); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [step, formData, dispatch]);
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -109,7 +115,11 @@ export default function MultiStepForm({ route = "/api/user/register/", method = 
       dispatch({ type: "RESET", payload: initialData });
       setStep(0);
     } catch (e) {
-      setError(e.response?.data?.detail || e.message);
+      if (e.response?.status === 401) {
+        setError("Invalid username or password. Please try again.");
+      } else {
+        setError(e.response?.data?.detail || e.message);
+      }
     } finally { setLoading(false); }
   };
 

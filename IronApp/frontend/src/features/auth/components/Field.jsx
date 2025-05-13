@@ -71,6 +71,7 @@ export default function Field({ config, value, onChange, inputRef, review }) {
             onChange={(e) => handle(e.target.value)}
             className="w-full p-2 border rounded"
             required={required}
+            autoFocus={false}
           />
         </div>
       );
@@ -85,6 +86,7 @@ export default function Field({ config, value, onChange, inputRef, review }) {
             onChange={(e) => handle(e.target.value)}
             className="w-full p-2 border rounded"
             required={required}
+            autoFocus={false} 
           >
             <option value="">Select {label}</option>
             {options.map((opt) => (
