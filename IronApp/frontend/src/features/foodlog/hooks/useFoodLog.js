@@ -52,10 +52,15 @@ const useFoodLog = () => {
         setIsLoading(true);
         setError(null);
         try {
-            // Set the parameters for the API request based on the search mode
-            const params = searchMode === 'barcode'
-                ? { code: q }
-                : { search: q, page, page_size: PAGE_SIZE };
+            // set the parameters for the API request based on the search mode
+            let params;
+            if (searchMode === 'barcode') {
+                params = { code: q };
+            } else if (searchMode === 'brand') {
+                params = { search: q, page, page_size: PAGE_SIZE };
+            } else {
+                params = { search: q, page, page_size: PAGE_SIZE };
+            }
 
             const response = await makeApiRequest(params);
             if (response.data.error) {
@@ -66,18 +71,18 @@ const useFoodLog = () => {
             let results = response.data.results || [];
             let count = response.data.count || results.length;
 
-            // Filter the results based on the search mode
-            if (searchMode === 'brand') {
-                results = results.filter(item =>
+            // apply filtering by brand based on the search mode
+            if (searchMode === 'brand' && results.length > 0) {
+                // create a copy for brand filtering (to avoid mutating the original results)
+                const brandMatches = results.filter(item =>
                     item.brands && item.brands.toLowerCase().includes(q.toLowerCase())
                 );
-                count = results.length;
-            } else if (searchMode === 'name') {
-                results = results.filter(item => {
-                    const name = (item.product_name_en || item.product_name || '').toLowerCase();
-                    return name.includes(q.toLowerCase());
-                });
-                count = results.length;
+                
+                // results are replaced if we found brand matches
+                if (brandMatches.length > 0) {
+                    results = brandMatches;
+                    count = brandMatches.length;
+                }
             }
 
             const calculatedTotalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
@@ -107,6 +112,20 @@ const useFoodLog = () => {
             } else if (status === 404) { //not found
                 setError(message); //use the message from our backend
                 setSearchResults([]); //clear any previous results
+                // display error message if brand/barcode search fails
+                if (searchMode === 'brand' || searchMode === 'barcode') {
+                    setError(`${searchMode === 'brand' ? 'Brand' : 'Barcode'} search failed. Please try a different search method.`);
+                } else {
+                    setError(message);
+                }
+            
+            } else if (status === 404) {
+                if (searchMode === 'barcode') {
+                    setError(`No product found with barcode "${q}"`);
+                } else {
+                    setError(message);
+                }
+                setSearchResults([]); // clear any previous results
                 setTotalResults(0);
             } else if (status === 400) { //bad request
                 setError(message); //use the message from our backend

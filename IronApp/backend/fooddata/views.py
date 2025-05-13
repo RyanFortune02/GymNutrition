@@ -113,6 +113,13 @@ class OpenFoodFactsSearchView(APIView):
                         ),
                         "serving_size": product_data.get("serving_size", ""),
                         "nutriments": product_data.get("nutriments", {}),
+                        "brands": product_data.get("brands", ""),
+                        "image_url": product_data.get("image_url", ""),
+                        "ingredients_text_en": product_data.get("ingredients_text_en", ""),
+                        "categories_imported": product_data.get("categories_imported", ""),
+                        "complete": product_data.get("complete", False),
+                        "keywords": product_data.get("_keywords", []),
+                        "allergens_tags": product_data.get("allergens_tags", []),
                     },
                 )
                 serializer = FoodProductSerializer(food_product)

@@ -128,7 +128,7 @@ const SearchForm = ({
                         {searchMode === 'name' 
                             ? 'Example: chicken breast, brown rice' 
                             : searchMode === 'brand'
-                                ? 'Example: Nestlé, kirkland'
+                                ? 'Example: kellogg\'s, kirkland'
                                 : 'Enter product barcode number'}
                     </p>
                 </div>
