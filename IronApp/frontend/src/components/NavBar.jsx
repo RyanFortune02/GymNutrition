@@ -18,7 +18,6 @@ export default function NavBar() {
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Food Log', href: '/food-log', icon: Book },
     { name: 'Future Tracking', href: '/future-tracking', icon: Calendar },
-    { name: 'Profile', href: '/profile', icon: User },
     { name: 'Weight Tracker', href: '/weight-tracker', icon: Weight },
   ]
 
@@ -57,6 +56,13 @@ export default function NavBar() {
             </div>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
+            <Link 
+              to="/profile" 
+              className="group flex items-center rounded-md bg-[var(--accent-color-orange)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--secondary-color-green)] transition-colors mr-2"
+            >
+              <User className="mr-2 h-4 w-4" />
+              Profile
+            </Link>
             <button
               onClick={handleLogout}
               className="group flex items-center rounded-md bg-[var(--primary-color-teal)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--secondary-color-green)] transition-colors"
@@ -104,6 +110,13 @@ export default function NavBar() {
                 </Link>
               )
             })}
+            <Link 
+              to="/profile" 
+              className="mt-2 flex w-full items-center rounded-md bg-[var(--accent-color-orange)] px-3 py-2 text-base font-medium text-white hover:bg-[var(--secondary-color-green)]"
+            >
+              <User className="mr-2 h-5 w-5" />
+              Profile
+            </Link>
             <button
               onClick={handleLogout}
               className="mt-2 flex w-full items-center rounded-md bg-[var(--primary-color-teal)] px-3 py-2 text-base font-medium text-white hover:bg-[var(--secondary-color-green)]"
