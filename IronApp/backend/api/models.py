@@ -143,15 +143,33 @@ class MealRecord(models.Model):
 
         nutrients = self.food.nutriments
         serving_multiplier = float(self.servings)
+        
+        #ensure all nutrient values are converted to float before multiplication
+        try:
+            calories = float(nutrients.get("energy-kcal_serving", 0))
+        except (ValueError, TypeError):
+            calories = 0.0
+            
+        try:
+            protein = float(nutrients.get("proteins_serving", 0))
+        except (ValueError, TypeError):
+            protein = 0.0
+            
+        try:
+            fat = float(nutrients.get("fat_serving", 0))
+        except (ValueError, TypeError):
+            fat = 0.0
+            
+        try:
+            carbs = float(nutrients.get("carbohydrates_serving", 0))
+        except (ValueError, TypeError):
+            carbs = 0.0
 
         return {
-            "calories": nutrients.get("energy-kcal_serving", 0)
-            * serving_multiplier,
-            "protein": nutrients.get("proteins_serving", 0)
-            * serving_multiplier,
-            "fat": nutrients.get("fat_serving", 0) * serving_multiplier,
-            "carbs": nutrients.get("carbohydrates_serving", 0)
-            * serving_multiplier,
+            "calories": calories * serving_multiplier,
+            "protein": protein * serving_multiplier,
+            "fat": fat * serving_multiplier,
+            "carbs": carbs * serving_multiplier,
         }
 
     @classmethod

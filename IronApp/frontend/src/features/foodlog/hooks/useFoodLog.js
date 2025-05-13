@@ -227,7 +227,7 @@ const useFoodLog = () => {
         };
     };
 
-    const handleAddFood = (foodItem) => {
+    const handleAddFood = async (foodItem) => {
         // Clone the food item to avoid reference issues
         const foodToAdd = JSON.parse(JSON.stringify(foodItem));
         
@@ -258,7 +258,42 @@ const useFoodLog = () => {
             return updatedMeals;
         });
         
-        // Set a timeout to remove the highlight after 1.5 seconds
+        //map meal types from frontend to backend format
+        const mealTypeMapping = {
+            breakfast: 'B',
+            lunch: 'L',
+            dinner: 'D',
+            snack: 'S',
+        };
+        
+        //find the correct id field for the backend
+        const foodId = foodToAdd._id || foodToAdd.id;
+        
+        //save to backend
+        try {
+            setIsLoading(true);
+            setError(null);
+            
+            //prepare payload for API
+            const payload = {
+                food: foodId,
+                meal_type: mealTypeMapping[selectedMeal] || selectedMeal.charAt(0).toUpperCase(),
+                date: new Date().toISOString().split('T')[0], //current date in YYYY-MM-DD format
+                servings: 1 //default to 1 serving
+            };
+            
+            //send to backend
+            await api.post('/api/meals/', payload);
+            
+            //successful save - no need to update local state as it's already updated
+        } catch (err) {
+            console.error('Failed to save meal record:', err.response?.data || err.message);
+            setError('Failed to save meal. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
+        
+        //set a timeout to remove the highlight after 1.5 seconds
         setTimeout(() => {
             setMeals(prev => {
                 const updatedMeal = prev[selectedMeal].map((item, index) => {
