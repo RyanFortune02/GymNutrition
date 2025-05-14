@@ -9,6 +9,7 @@ urlpatterns = [
     path(
         "meals/", views.MealRecordListCreate.as_view(), name="meal-list-create"
     ),
+    path("meals/<int:pk>/", views.MealRecordDetail.as_view(), name="meal-detail"),
     path(
         "nutrition/summary/",
         views.NutritionSummaryView.as_view(),

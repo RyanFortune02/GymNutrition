@@ -25,6 +25,22 @@ const useFoodLog = () => {
     const MAX_RETRIES = 3;
     const PAGE_SIZE = 5;
 
+    //map meal types from frontend to backend format 
+    const mealTypeMapping = {
+        breakfast: 'B',
+        lunch: 'L',
+        dinner: 'D',
+        snack: 'S',
+    };
+    
+    // map meal types from backend to frontend format
+    const reverseMealTypeMapping = {
+        'B': 'breakfast',
+        'L': 'lunch',
+        'D': 'dinner',
+        'S': 'snack'
+    };
+
     // Format date to YYYY-MM-DD for use as keys in the meals history
     const formatDate = (date) => {
         return date.toISOString().split('T')[0];
@@ -39,15 +55,10 @@ const useFoodLog = () => {
         if (mealsHistory[currentDateKey]) {
             setMeals(mealsHistory[currentDateKey]);
         } else {
-            // Initialize empty meals for new date
-            setMeals({
-                breakfast: [],
-                lunch: [],
-                dinner: [],
-                snack: []
-            });
+            // Fetch from backend if no meals for this date
+            fetchMealRecords(selectedDate);
         }
-    }, [currentDateKey, mealsHistory]);
+    }, [currentDateKey, mealsHistory, selectedDate]); 
 
     // Navigate to previous day
     const goToPreviousDay = () => {
@@ -258,14 +269,6 @@ const useFoodLog = () => {
             return updatedMeals;
         });
         
-        //map meal types from frontend to backend format
-        const mealTypeMapping = {
-            breakfast: 'B',
-            lunch: 'L',
-            dinner: 'D',
-            snack: 'S',
-        };
-        
         //find the correct id field for the backend
         const foodId = foodToAdd._id || foodToAdd.id;
         
@@ -276,10 +279,10 @@ const useFoodLog = () => {
             
             //prepare payload for API
             const payload = {
-                food: foodId,
-                meal_type: mealTypeMapping[selectedMeal] || selectedMeal.charAt(0).toUpperCase(),
-                date: new Date().toISOString().split('T')[0], //current date in YYYY-MM-DD format
-                servings: 1 //default to 1 serving
+                food_id: foodId,
+                meal_type: mealTypeMapping[selectedMeal],
+                date: formatDate(selectedDate),
+                servings: 1 // Default serving
             };
             
             //send to backend
@@ -320,22 +323,35 @@ const useFoodLog = () => {
         }, 1500);
     };
 
-    // Remove the food item from the selected meal
-    const handleRemoveFood = (mealType, index) => {
-        setMeals(prev => {
-            const updatedMeals = {
-                ...prev,
-                [mealType]: prev[mealType].filter((_, i) => i !== index)
-            };
+    // Remove the food item from the selected meal using the mealRecordId
+    const handleRemoveFood = async (mealType, index) => {
+        try {
+            const mealToDelete = meals[mealType][index];
             
-            // Update the meal history for the current date
-            setMealsHistory(prevHistory => ({
-                ...prevHistory,
-                [currentDateKey]: updatedMeals
-            }));
+            // remove the meal from the backend by its mealRecordId
+            if (mealToDelete.mealRecordId) {
+                await api.delete(`/api/meals/${mealToDelete.mealRecordId}/`);
+            }
             
-            return updatedMeals;
-        });
+            // Update local state
+            setMeals(prev => {
+                const updatedMeals = {
+                    ...prev,
+                    [mealType]: prev[mealType].filter((_, i) => i !== index)
+                };
+                
+                // Update the meal history for the current date
+                setMealsHistory(prevHistory => ({
+                    ...prevHistory,
+                    [currentDateKey]: updatedMeals
+                }));
+                
+                return updatedMeals;
+            });
+        } catch (error) {
+            console.error("Failed to remove meal record:", error);
+            setError("Failed to remove meal. Please try again.");
+        }
     };
 
     // Memoize nutrient calculations for each meal to prevent recalculations on every render
@@ -400,6 +416,59 @@ const useFoodLog = () => {
         setSelectedMeal(mealType);
     };
 
+    // Fetch meal records from the backend for a specific date and update the meals state
+    const fetchMealRecords = async (date) => {
+        setIsLoading(true);
+        setError(null);
+        
+        try {
+            // Format date for the API
+            const formattedDate = formatDate(date);
+            
+            // Get the meal records for the selected date
+            const response = await api.get(`/api/meals/?date=${formattedDate}`);
+            
+            if (response.data) {
+                // Initialize meals structure
+                const fetchedMeals = {
+                    breakfast: [],
+                    lunch: [],
+                    dinner: [],
+                    snack: []
+                };
+                
+                // Add the food item to the meals state
+                response.data.forEach(record => {
+                    const frontendMealType = reverseMealTypeMapping[record.meal_type];
+                    if (frontendMealType) {
+                        const foodItem = {
+                            ...record.food,
+                            mealRecordId: record.id,
+                            servings: record.servings,
+                            normalizedNutriments: normalizeNutriments(record.food.nutriments),
+                        };
+                        
+                        fetchedMeals[frontendMealType].push(foodItem); // Add the food item to the meals state
+                    }
+                });
+                
+                // Update the meals state with fetched data
+                setMeals(fetchedMeals);
+                
+                // Update meals history
+                setMealsHistory(prevHistory => ({
+                    ...prevHistory,
+                    [formatDate(date)]: fetchedMeals
+                }));
+            }
+        } catch (error) {
+            console.error("Failed to fetch meal records:", error);
+            setError("Failed to load your meal records. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return {
         meals,
         searchInput,
@@ -427,7 +496,8 @@ const useFoodLog = () => {
         goToNextDay,
         goToDate,
         goToToday,
-        formatDate
+        formatDate,
+        fetchMealRecords
     };
 };
 

@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from .models import Note, UserProfile, MealRecord
+from fooddata.serializers import FoodProductSerializer
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -95,10 +96,17 @@ class MealRecordSerializer(serializers.ModelSerializer):
     servings = serializers.DecimalField(
         max_digits=5, decimal_places=2, coerce_to_string=False
     )
+    
+    # Gives details about the food item when retrieving a meal record
+    # uses FoodProductSerializer to display the food details (name, brand, etc.)
+    food = FoodProductSerializer(read_only=True)
+    
+    # Allows for the food ID to be sent to the backend when creating a meal record
+    food_id = serializers.CharField(write_only=True)
 
     class Meta:
         model = MealRecord
-        fields = ["id", "date", "meal_type", "food", "servings", "nutrients"]
+        fields = ["id", "date", "meal_type", "food", "food_id", "servings", "nutrients"]
 
     def get_nutrients(self, obj):
         return obj.get_nutrients()

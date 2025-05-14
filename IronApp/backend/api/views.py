@@ -61,12 +61,25 @@ class MealRecordListCreate(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return MealRecord.objects.filter(user=self.request.user).order_by(
-            "-date"
-        )
+        queryset = MealRecord.objects.filter(user=self.request.user)
+        
+        # filter the queryset by date
+        date = self.request.query_params.get('date')
+        if date:
+            queryset = queryset.filter(date=date)
+        
+        return queryset.order_by("-date")
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+# Allows for the retrieval, updating, and deletion of a specific meal record
+class MealRecordDetail(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = MealRecordSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return MealRecord.objects.filter(user=self.request.user)
 
 
 class NutritionSummaryView(generics.GenericAPIView):
