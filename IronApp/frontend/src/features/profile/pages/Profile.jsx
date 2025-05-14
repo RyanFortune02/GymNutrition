@@ -39,6 +39,12 @@ function Profile() {
           >
             Edit Profile
           </button>
+          <button
+            onClick={() => navigate("/change-password")}
+            className="w-full p-3 my-4 bg-[var(--primary-color-blue)] text-white rounded hover:opacity-90 transition-opacity duration-200 font-medium"
+          >
+            Change Password
+          </button>
         </div>
       </div>
     </>
