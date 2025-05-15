@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, X, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { Calendar, X, ChevronLeft, ChevronRight, Trash2, Info } from 'lucide-react';
 import DateRangeInput from './DateRangeInput';
 import MealTypeSelection from './MealTypeSelection';
 
@@ -139,7 +139,7 @@ const TrackedFoodList = ({ trackedFoods, mealIcons, handleRemoveTrackedFood }) =
                           <div className="flex justify-between">
                             <div className="flex-grow">
                               <div className="font-medium text-gray-800">
-                                {food.food.product_name || food.food.product_name_en}
+                                {food.food.product_name_en}
                               </div>
                               
                               <div className="mt-1 text-sm text-gray-500">
@@ -151,20 +151,27 @@ const TrackedFoodList = ({ trackedFoods, mealIcons, handleRemoveTrackedFood }) =
                                   <span className="font-medium">Range:</span> {DateRangeInput.formatUserDate(food.startDate)} - {DateRangeInput.formatUserDate(food.endDate)}
                                 </span>
                                 
+                                {food.recordCount && (
+                                  <span className="text-green-500 flex items-center gap-0.5">
+                                    <Info size={12} />
+                                    {food.recordCount} meals tracked
+                                  </span>
+                                )}
+                                
                                 <span className="text-blue-600">
-                                  {Math.round(food.food.nutriments?.['energy-kcal'] || 0)} kcal
+                                  {Math.round(food.food.nutriments?.['energy_kcal_serving'] || 0)} kcal
                                 </span>
                                 
                                 <span className="text-green-600">
-                                  {Math.round(food.food.nutriments?.proteins || 0)}g protein
+                                  {Math.round(food.food.nutriments?.proteins_serving || 0)}g protein
                                 </span>
 
                                 <span className="text-yellow-600">
-                                  {Math.round(food.food.nutriments?.carbohydrates || 0)}g carbs
+                                  {Math.round(food.food.nutriments?.carbohydrates_serving || 0)}g carbs
                                 </span>
 
                                 <span className="text-red-600">
-                                  {Math.round(food.food.nutriments?.fat || 0)}g fat
+                                  {Math.round(food.food.nutriments?.fat_serving || 0)}g fat
                                 </span>
                               </div>
                             </div>

@@ -15,4 +15,9 @@ urlpatterns = [
         views.NutritionSummaryView.as_view(),
         name="nutrition-summary",
     ),
+    path(
+        "meals/batch-create/",
+        views.MealRecordBatchCreateView.as_view(),
+        name="meal-batch-create",
+    ),
 ]
