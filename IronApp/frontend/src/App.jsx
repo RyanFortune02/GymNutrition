@@ -11,13 +11,17 @@ import FoodLogPage from "./features/foodlog/pages/FoodLogPage";
 import DashboardPage from "./features/dashboard/Dashboardpage";
 import WeightTracker from "./features/weight/pages/WeightTracker";
 import FoodTrackerPage from "./features/foodTracker/pages/FoodTrackerPage";
+import LandingPage from "./pages/LandingPage";
+import Home from "./pages/Home";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/welcome" element={<LandingPage />} />
         <Route
-          path="/"
+          path="/dashboard"
           element={
             <ProtectedRoute>
               <DashboardPage />
