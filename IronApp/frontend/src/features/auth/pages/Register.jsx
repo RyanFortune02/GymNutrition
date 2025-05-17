@@ -1,7 +1,7 @@
 import MultiStepForm from "../components/MultiStepForm";
 import { Link } from "react-router-dom";
 import { LogIn } from 'lucide-react';
-import RegisterImage from '../../../assets/registerImage.png';
+import RegisterImage from '../../../assets/RegisterImage.png';
 
 export default function Register() {
   return (
