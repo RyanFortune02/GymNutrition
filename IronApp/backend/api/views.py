@@ -1,11 +1,12 @@
 from django.contrib.auth.models import User
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from datetime import datetime, timedelta, date
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
-from rest_framework import status
+
+from .serializers import PasswordChangeSerializer
 
 from .models import Note, UserProfile, MealRecord
 from .serializers import (
@@ -83,6 +84,24 @@ class MealRecordDetail(generics.RetrieveUpdateDestroyAPIView):
     
     def get_queryset(self):
         return MealRecord.objects.filter(user=self.request.user)
+
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = PasswordChangeSerializer(
+            data=request.data, 
+            context={'request': request}
+        )
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"message": "Password updated successfully"}, 
+                status=status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class NutritionSummaryView(generics.GenericAPIView):

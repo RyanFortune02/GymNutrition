@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from .views import ChangePasswordView
 
 urlpatterns = [
     path("notes/", views.NoteListCreate.as_view(), name="note-list"),
@@ -19,5 +20,10 @@ urlpatterns = [
         "meals/batch-create/",
         views.MealRecordBatchCreateView.as_view(),
         name="meal-batch-create",
+    ),
+    path(
+        "auth/change-password/",
+        ChangePasswordView.as_view(),
+        name="change-password",
     ),
 ]

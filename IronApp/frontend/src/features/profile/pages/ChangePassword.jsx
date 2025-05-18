@@ -66,9 +66,10 @@ function ChangePassword() {
       setLoading(true);
       
       // Call API to change password 
-      await api.post("/api/user/change-password/", {
-        current_password: currentPassword,
-        new_password: newPassword
+      await api.post("/api/auth/change-password/", {
+        old_password: currentPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword
       });
       
       setMessage({

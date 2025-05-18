@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User
+from django.contrib.auth import password_validation
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from .models import Note, UserProfile, MealRecord
 from fooddata.serializers import FoodProductSerializer
@@ -81,6 +83,33 @@ class UserSerializer(serializers.ModelSerializer):
 
         UserProfile.objects.create(user=user, **profile_data)
 
+        return user
+
+
+class PasswordChangeSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True, write_only=True)
+    new_password = serializers.CharField(required=True, write_only=True)
+    confirm_password = serializers.CharField(required=True, write_only=True)
+
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise ValidationError("Old password is not correct")
+        return value
+
+    def validate_new_password(self, value):
+        password_validation.validate_password(value, self.context['request'].user)
+        return value
+
+    def validate(self, data):
+        if data['new_password'] != data['confirm_password']:
+            raise ValidationError({"new_password": "The two password fields didn't match."})
+        return data
+
+    def save(self, **kwargs):
+        user = self.context['request'].user
+        user.set_password(self.validated_data['new_password'])
+        user.save()
         return user
 
 
