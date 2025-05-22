@@ -56,8 +56,8 @@ const CurrentWeight = ({ weightEntries = [], profileWeight = 0, initialWeight = 
   const formatDate = (dateString) => {
     if (!dateString) return '';
     
-    // Create a date object and get the formatted date
-    const date = new Date(dateString);
+    // Create a date object 
+    const date = new Date(dateString + 'T12:00:00'); // Use noon to avoid timezone issues
     return date.toLocaleDateString();
   };
 

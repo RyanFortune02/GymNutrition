@@ -6,7 +6,16 @@ import { Trash2, TrendingUp, TrendingDown, Minus, Calendar, Scale, Info } from '
  * Allows the user to delete a weight entry
  */
 const WeightHistory = ({ weightEntries, onDelete, initialWeight }) => {
-    // If there are no weight entries, display a message
+  // Format date consistently with timezone handling
+  const formatDate = (dateString) => {
+    if (!dateString) return 'No date';
+    
+    // Create a date object from the ISO string
+    const date = new Date(dateString + 'T12:00:00'); // Use noon to avoid timezone boundary issues
+    return date.toLocaleDateString();
+  };
+
+  // If there are no weight entries, display a message
   if (!weightEntries || weightEntries.length === 0) {
     return (
       <div className="bg-gray-50 p-6 rounded-lg text-center text-gray-500">
@@ -86,7 +95,7 @@ const WeightHistory = ({ weightEntries, onDelete, initialWeight }) => {
                       <div className="flex items-center text-gray-700">
                         <Calendar size={14} className="mr-1 text-gray-500" />
                         <p className="font-medium">
-                          {entry.date ? new Date(entry.date).toLocaleDateString() : 'No date'}
+                          {formatDate(entry.date)}
                         </p>
                       </div>
                       

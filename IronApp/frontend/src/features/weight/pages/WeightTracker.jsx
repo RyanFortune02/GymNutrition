@@ -52,17 +52,15 @@ const WeightTracker = () => {
           initialWeight={initialWeight} 
         />
 
-        {/* Error message - displays if there is an error with the weight entries */}
-        {weightError && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {weightError}
-          </div>
-        )}
-
         {/* Weight Entry Form - allows the user to add a new weight entry */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <WeightEntryForm onSubmit={addWeightEntry} isSubmitting={isSubmitting} />
+            {/* Weight Entry Form - allows the user to add a new weight entry and has error handling */}
+            <WeightEntryForm 
+              onSubmit={addWeightEntry} 
+              isSubmitting={isSubmitting} 
+              error={weightError}
+            />
           </div>
           <div>
             {/* Weight History - displays the user's weight history */}
