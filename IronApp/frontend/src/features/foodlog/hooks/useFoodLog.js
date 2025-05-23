@@ -238,7 +238,7 @@ const useFoodLog = () => {
         };
     };
 
-    const handleAddFood = async (foodItem) => {
+    const handleAddFood = async (foodItem, servings = 1) => {
         // Clone the food item to avoid reference issues
         const foodToAdd = JSON.parse(JSON.stringify(foodItem));
         
@@ -250,6 +250,7 @@ const useFoodLog = () => {
         
         const newItem = {
             ...foodToAdd,
+            servings: servings, // Store the servings in the local state
             _justAdded: true // Add a flag to highlight newly added items
         };
         
@@ -282,7 +283,7 @@ const useFoodLog = () => {
                 food_id: foodId,
                 meal_type: mealTypeMapping[selectedMeal],
                 date: formatDate(selectedDate),
-                servings: 1 // Default serving
+                servings: servings 
             };
             
             //send to backend
@@ -302,7 +303,7 @@ const useFoodLog = () => {
                 const updatedMeal = prev[selectedMeal].map((item, index) => {
                     if (index === prev[selectedMeal].length - 1 && item._justAdded) {
                         const { _justAdded, ...rest } = item;
-                        return rest;
+                        return { ...rest, servings: item.servings };
                     }
                     return item;
                 });
@@ -360,17 +361,29 @@ const useFoodLog = () => {
         
         return mealTypes.reduce((acc, mealType) => {
             const nutrients = meals[mealType].reduce((mealAcc, food) => {
-                // Normalize the nutriments for correct calculations
-                const nutriments = food.normalizedNutriments || normalizeNutriments(food.nutriments) || {};
+                let caloriesValue, proteinValue, carbsValue, fatValue, fiberValue, sugarValue, sodiumValue;
                 
-                // Calculate the total nutrients for the meal
-                const caloriesValue = Number(nutriments.calories) || 0;
-                const proteinValue = Number(nutriments.protein) || 0;
-                const carbsValue = Number(nutriments.carbs) || 0;
-                const fatValue = Number(nutriments.fat) || 0;
-                const fiberValue = Number(nutriments.fiber) || 0;
-                const sugarValue = Number(nutriments.sugar) || 0;
-                const sodiumValue = Number(nutriments.sodium) || 0;
+                // Use calculated nutrients from backend  
+                if (food.calculatedNutrients) {
+                    caloriesValue = Number(food.calculatedNutrients.calories) || 0;
+                    proteinValue = Number(food.calculatedNutrients.protein) || 0;
+                    carbsValue = Number(food.calculatedNutrients.carbs) || 0;
+                    fatValue = Number(food.calculatedNutrients.fat) || 0;
+                    fiberValue = Number(food.calculatedNutrients.fiber) || 0;
+                    sugarValue = Number(food.calculatedNutrients.sugar) || 0;
+                    sodiumValue = Number(food.calculatedNutrients.sodium) || 0;
+                } else {
+                    const nutriments = food.normalizedNutriments || normalizeNutriments(food.nutriments) || {};
+                    const servingsMultiplier = Number(food.servings) || 1;
+                    
+                    caloriesValue = (Number(nutriments.calories) || 0) * servingsMultiplier;
+                    proteinValue = (Number(nutriments.protein) || 0) * servingsMultiplier;
+                    carbsValue = (Number(nutriments.carbs) || 0) * servingsMultiplier;
+                    fatValue = (Number(nutriments.fat) || 0) * servingsMultiplier;
+                    fiberValue = (Number(nutriments.fiber) || 0) * servingsMultiplier;
+                    sugarValue = (Number(nutriments.sugar) || 0) * servingsMultiplier;
+                    sodiumValue = (Number(nutriments.sodium) || 0) * servingsMultiplier;
+                }
                 
                 return {
                     calories: (mealAcc.calories || 0) + caloriesValue,
@@ -445,6 +458,7 @@ const useFoodLog = () => {
                             ...record.food,
                             mealRecordId: record.id,
                             servings: record.servings,
+                            calculatedNutrients: record.nutrients, 
                             normalizedNutriments: normalizeNutriments(record.food.nutriments),
                         };
                         

@@ -95,8 +95,8 @@ const FoodLogPage = () => {
         setDisplayMode('recent'); 
     };
 
-    const handleSelectFood = async (foodItem) => {
-        originalHandleAddFood(foodItem, selectedMeal);
+    const handleSelectFood = async (foodItem, servings = 1) => {
+        originalHandleAddFood(foodItem, servings);
 
         if (displayMode === 'search' && foodItem && foodItem.id) {
             try {
