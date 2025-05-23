@@ -75,32 +75,55 @@ const MealTab = ({ mealType, mealItems, handleRemoveFood, calculateTotalNutrient
                                     <div>
                                         <div className="font-medium text-gray-800">{food.product_name_en || food.product_name}</div>
                                         <div className="text-xs text-gray-500 mt-0.5">{food.brands}</div>
+                                        {food.servings && (
+                                            <div className="text-xs text-purple-600 font-medium mt-1">
+                                                <span className="font-medium">Servings:</span> {parseFloat(food.servings).toFixed(food.servings % 1 === 0 ? 0 : 1)}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="flex items-center space-x-4 bg-white py-1.5 px-3 rounded-lg shadow-sm border border-gray-100">
                                     <div className="text-sm font-medium flex items-center gap-1 text-orange-600">
                                         <Flame size={14} />
-                                        {Math.round(food.nutriments?.['energy_kcal_serving'] || food.nutriments?.['energy-kcal_serving'] || 0)} kcal
+                                        {food.calculatedNutrients 
+                                            ? Math.round(food.calculatedNutrients.calories || 0)
+                                            : Math.round((food.nutriments?.['energy_kcal_serving'] || food.nutriments?.['energy-kcal_serving'] || 0) * (food.servings || 1))
+                                        } kcal
                                     </div>
                                     <div className="text-xs flex items-center gap-1">
                                         <Beef size={12} className="text-red-700" />
-                                        {food.nutriments?.['proteins_serving']?.toFixed(1) ?? '0.0'}g
+                                        {food.calculatedNutrients 
+                                            ? food.calculatedNutrients.protein?.toFixed(1) ?? '0.0'
+                                            : ((food.nutriments?.['proteins_serving'] || 0) * (food.servings || 1)).toFixed(1)
+                                        }g
                                     </div>
                                     <div className="text-xs flex items-center gap-1">
                                         <Wheat size={12} className="text-amber-600" />
-                                        {food.nutriments?.['carbohydrates_serving']?.toFixed(1) ?? '0.0'}g
+                                        {food.calculatedNutrients 
+                                            ? food.calculatedNutrients.carbs?.toFixed(1) ?? '0.0'
+                                            : ((food.nutriments?.['carbohydrates_serving'] || 0) * (food.servings || 1)).toFixed(1)
+                                        }g
                                     </div>
                                     <div className="text-xs flex items-center gap-1">
                                         <Droplets size={12} className="text-blue-600" />
-                                        {food.nutriments?.['fat_serving']?.toFixed(1) ?? '0.0'}g
+                                        {food.calculatedNutrients 
+                                            ? food.calculatedNutrients.fat?.toFixed(1) ?? '0.0'
+                                            : ((food.nutriments?.['fat_serving'] || 0) * (food.servings || 1)).toFixed(1)
+                                        }g
                                     </div>
                                     <div className="text-xs hidden md:flex items-center gap-1">
                                         <Cookie size={12} className="text-pink-600" />
-                                        S: {food.nutriments?.['sugars_serving']?.toFixed(1) ?? '0.0'} g
+                                        S: {food.calculatedNutrients 
+                                            ? food.calculatedNutrients.sugar?.toFixed(1) ?? '0.0'
+                                            : ((food.nutriments?.['sugars_serving'] || 0) * (food.servings || 1)).toFixed(1)
+                                        } g
                                     </div>
                                     <div className="text-xs hidden md:flex items-center gap-1">
                                         <Salad size={12} className="text-green-600" />
-                                        Fib: {food.nutriments?.['fiber_serving']?.toFixed(1) ?? '0.0'} g
+                                        Fib: {food.calculatedNutrients 
+                                            ? food.calculatedNutrients.fiber?.toFixed(1) ?? '0.0'
+                                            : ((food.nutriments?.['fiber_serving'] || 0) * (food.servings || 1)).toFixed(1)
+                                        } g
                                     </div>
                                     <button
                                         onClick={() => handleRemoveFood(mealType, index)}

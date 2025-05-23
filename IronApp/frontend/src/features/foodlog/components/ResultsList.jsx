@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, PlusCircle, XCircle, AlertCircle, Pizza } from 'lucide-react';
 import LoadingIndicator from '../../../components/LoadingIndicator';
 
@@ -18,6 +18,38 @@ const ResultsList = ({
     onClearResults,
     showPagination 
 }) => {
+    // State to manage servings for each food item
+    const [servingsInputs, setServingsInputs] = useState({});
+
+    // Initialize servings for new search results
+    useEffect(() => {
+        const newServingsInputs = {};
+        searchResults.forEach(food => {
+            if (!servingsInputs[food.id]) {
+                newServingsInputs[food.id] = 1;
+            }
+        });
+        if (Object.keys(newServingsInputs).length > 0) {
+            setServingsInputs(prev => ({ ...prev, ...newServingsInputs }));
+        }
+    }, [searchResults]);
+
+    // Handle servings input change
+    const handleServingsChange = (foodId, value) => {
+        const numValue = parseFloat(value);
+        if (numValue > 0 && numValue <= 50) {
+            setServingsInputs(prev => ({
+                ...prev,
+                [foodId]: numValue
+            }));
+        }
+    };
+
+    // Handle adding food with servings
+    const handleAddFoodWithServings = (food) => {
+        const servings = servingsInputs[food.id] || 1;
+        handleAddFood(food, servings);
+    };
 
     // Function to have a scrollable list of results
     const handleScroll = (e) => {
@@ -101,10 +133,9 @@ const ResultsList = ({
                 {searchResults.map((food) => (
                     <div
                         key={food.id}
-                        onClick={() => handleAddFood(food)}
-                        className="p-4 border-b last:border-b-0 hover:bg-blue-50/30 cursor-pointer transition-colors"
+                        className="p-4 border-b last:border-b-0 hover:bg-blue-50/30 transition-colors"
                     >
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-start gap-3">
                             {food.image_url && (
                                 <img 
                                     src={food.image_url} 
@@ -116,16 +147,21 @@ const ResultsList = ({
                                     }}
                                 />
                             )}
-                            <div className="flex-1 min-w-0 mr-2">
+                            <div className="flex-1 min-w-0">
                                 <div className="font-medium text-gray-800 truncate">{food.product_name_en || food.product_name}</div>
                                 <div className="text-xs text-gray-500 mb-2">{food.brands}</div>
-                                <div className="text-sm text-[var(--primary-color-teal)] font-medium">
+                                <div className="text-sm text-[var(--primary-color-teal)] font-medium mb-2">
                                     {/* Show calories per serving if available, otherwise display '-' for no calories */}
                                     {food.nutriments && (food.nutriments?.['energy_kcal_serving'] || food.nutriments?.['energy-kcal_serving'] || food.nutriments?.['energy-kcal']) 
                                         ? `${Math.round(food.nutriments?.['energy_kcal_serving'] || food.nutriments?.['energy-kcal_serving'] || food.nutriments?.['energy-kcal'])} kcal per serving`
                                         : '- kcal'}
                                 </div>
-                                <div className="text-xs text-gray-500 mt-2 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-x-2 gap-y-1">
+                                {food.serving_size && (
+                                    <div className="text-xs text-purple-600 font-medium mb-2">
+                                        <span className="font-medium">Serving Size:</span> {food.serving_size}
+                                    </div>
+                                )}
+                                <div className="text-xs text-gray-500 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-x-2 gap-y-1 mb-3">
                                     <div>
                                         <span className="font-medium">Pro:</span> {(food.nutriments?.['proteins_serving'] ?? 0).toFixed(1)}g
                                     </div>
@@ -142,17 +178,37 @@ const ResultsList = ({
                                         <span className="font-medium">Fiber:</span> {(food.nutriments?.['fiber_serving'] ?? 0).toFixed(1)}g
                                     </div>
                                 </div>
+                                
+                                {/* Servings Input and Add Button */}
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-2">
+                                        <label className="text-xs text-gray-600 font-medium whitespace-nowrap">Servings:</label>
+                                        <input
+                                            type="number"
+                                            min="0.1"
+                                            max="50"
+                                            step="0.1"
+                                            value={servingsInputs[food.id] || 1}
+                                            onChange={(e) => {
+                                                e.stopPropagation();
+                                                handleServingsChange(food.id, e.target.value);
+                                            }}
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="w-20 px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-[var(--primary-color-teal)] focus:border-transparent"
+                                        />
+                                    </div>
+                                    <button 
+                                        className="px-4 py-2 bg-[var(--secondary-color-green)] text-white rounded-lg hover:bg-[var(--primary-color-teal)] transition-colors text-sm shadow-sm flex items-center gap-2 flex-shrink-0"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleAddFoodWithServings(food);
+                                        }}
+                                    >
+                                        <PlusCircle size={16} />
+                                        Add
+                                    </button>
+                                </div>
                             </div>
-                            <button 
-                                className="ml-auto px-3 py-2 bg-[var(--secondary-color-green)] text-white rounded-lg hover:bg-[var(--primary-color-teal)] transition-colors text-sm shadow-sm flex items-center gap-1 flex-shrink-0"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAddFood(food);
-                                }}
-                            >
-                                <PlusCircle size={16} />
-                                Add
-                            </button>
                         </div>
                     </div>
                 ))}

@@ -54,6 +54,15 @@ const FoodLogPage = () => {
             day: 'numeric' 
         });
     };
+
+    // Format a shorter version of the date for smaller screens
+    const formatShortDate = (date) => {
+        return date.toLocaleDateString('en-US', { 
+            weekday: 'short', 
+            month: 'short', 
+            day: 'numeric' 
+        });
+    };
     
     // Check if the date is today 
     const isToday = (date) => {
@@ -95,8 +104,8 @@ const FoodLogPage = () => {
         setDisplayMode('recent'); 
     };
 
-    const handleSelectFood = async (foodItem) => {
-        originalHandleAddFood(foodItem, selectedMeal);
+    const handleSelectFood = async (foodItem, servings = 1) => {
+        originalHandleAddFood(foodItem, servings);
 
         if (displayMode === 'search' && foodItem && foodItem.id) {
             try {
@@ -135,10 +144,11 @@ const FoodLogPage = () => {
                                 </div>
                             </div>
                             
-                            <div className="flex items-center gap-2">
+                            {/* Fixed-width date navigation container */}
+                            <div className="flex items-center gap-2 min-w-[350px] sm:min-w-[450px] justify-end">
                                 <button 
                                     onClick={goToPreviousDay}
-                                    className="p-2 rounded-full hover:bg-white/20 transition-colors"
+                                    className="p-2 rounded-full hover:bg-white/20 transition-colors flex-shrink-0"
                                     aria-label="Previous day"
                                 >
                                     <ChevronLeft size={24} />
@@ -146,29 +156,39 @@ const FoodLogPage = () => {
                                 
                                 <button
                                     onClick={() => setShowCalendar(true)}
-                                    className="flex items-center gap-2 bg-white/20 py-2 px-4 rounded-lg hover:bg-white/30 transition-colors"
+                                    className="flex items-center justify-center gap-2 bg-white/20 py-2 px-3 rounded-lg hover:bg-white/30 transition-colors w-[200px] sm:w-[280px] flex-shrink-0"
+                                    title={formatDisplayDate(selectedDate)}
                                 >
-                                    <CalendarIcon size={20} />
-                                    <span>{formatDisplayDate(selectedDate)}</span>
+                                    <CalendarIcon size={20} className="flex-shrink-0" />
+                                    <span className="text-sm sm:text-base truncate">
+                                        <span className="hidden sm:inline">{formatDisplayDate(selectedDate)}</span>
+                                        <span className="sm:hidden">{formatShortDate(selectedDate)}</span>
+                                    </span>
                                 </button>
                                 
                                 <button 
                                     onClick={goToNextDay}
-                                    className="p-2 rounded-full hover:bg-white/20 transition-colors"
+                                    className="p-2 rounded-full hover:bg-white/20 transition-colors flex-shrink-0"
                                     aria-label="Next day"
                                 >
                                     <ChevronRight size={24} />
                                 </button>
                                 
-                                {!isToday(selectedDate) && (
-                                    <button
-                                        onClick={goToToday}
-                                        className="ml-2 flex items-center gap-1 bg-white/20 py-1 px-3 rounded-lg hover:bg-white/30 transition-colors text-sm"
-                                    >
-                                        <CalendarCheck size={16} />
-                                        Today
-                                    </button>
-                                )}
+                                <button
+                                    onClick={isToday(selectedDate) ? undefined : goToToday}
+                                    className={`flex items-center justify-center gap-1 py-1 px-3 rounded-lg transition-colors text-sm w-[90px] flex-shrink-0 ${
+                                        isToday(selectedDate) 
+                                            ? 'bg-white/30 text-white/90 cursor-default' 
+                                            : 'bg-white/20 hover:bg-white/30 cursor-pointer'
+                                    }`}
+                                    disabled={isToday(selectedDate)}
+                                    title={isToday(selectedDate) ? "You are viewing today's date" : "Go to today's date"}
+                                >
+                                    <CalendarCheck size={16} className="flex-shrink-0" />
+                                    <span className="truncate">
+                                        {isToday(selectedDate) ? 'Today' : 'Today'}
+                                    </span>
+                                </button>
                             </div>
                         </div>
                     </header>
