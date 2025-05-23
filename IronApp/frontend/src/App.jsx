@@ -11,6 +11,7 @@ import FoodLogPage from "./features/foodlog/pages/FoodLogPage";
 import DashboardPage from "./features/dashboard/Dashboardpage";
 import WeightTracker from "./features/weight/pages/WeightTracker";
 import FoodTrackerPage from "./features/foodTracker/pages/FoodTrackerPage";
+import GroceryListPage from "./features/grocerylist/pages/GroceryListPage";
 import LandingPage from "./pages/LandingPage";
 import Home from "./pages/Home";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -38,6 +39,7 @@ function App() {
           <Route path="/food-log" element={<ProtectedRoute><FoodLogPage /></ProtectedRoute>} />
           <Route path="/weight-tracker" element={<ProtectedRoute><WeightTracker /></ProtectedRoute>} />
           <Route path="/future-tracking" element={<ProtectedRoute><FoodTrackerPage /></ProtectedRoute>} />
+          <Route path="/grocery-list" element={<ProtectedRoute><GroceryListPage /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
