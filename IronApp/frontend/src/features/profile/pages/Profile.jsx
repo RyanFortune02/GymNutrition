@@ -6,10 +6,27 @@ import NavBar from "../../../components/NavBar";
 import { formatHeightImperial, formatWeightImperial } from "../../../utils/unitConversion";
 import { useNavigate } from "react-router-dom";
 import ThemeToggle from "../../../components/ThemeToggle";
+import useAuth from "../../auth/hooks/useAuth";
 
 function Profile() {
-  const { profile, loading, error } = useProfile();
+  const { profile, loading, error, deleteState } = useProfile();
+  const { logout } = useAuth();
   const navigate = useNavigate();
+
+  const { 
+    showDeleteModal, 
+    isDeleting, 
+    deleteError, 
+    openDeleteModal, 
+    closeDeleteModal, 
+    handleDeleteAccount 
+  } = deleteState;
+
+  // Handle successful account deletion
+  const onDeleteSuccess = () => {
+    alert('Account deleted successfully');
+    logout(); // This will clear tokens and redirect to login
+  };
 
   if (loading) return <LoadingIndicator />;
   if (error) return <div className="text-center text-red-600 mt-8">{error}</div>;
@@ -50,7 +67,51 @@ function Profile() {
           >
             Change Password
           </button>
+          
+          {/* Delete Account Button */}
+          <button
+            onClick={openDeleteModal}
+            className="w-full p-3 my-4 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200 font-medium"
+          >
+            Delete Account
+          </button>
         </div>
+        
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg max-w-md mx-4">
+              <h2 className="text-xl font-bold text-red-600 mb-4">Delete Account</h2>
+              <p className="text-gray-700 mb-6">
+                Are you sure you want to delete your account? This action cannot be undone. 
+                All your data including food logs, progress, and preferences will be permanently deleted.
+              </p>
+              
+              {deleteError && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                  {deleteError}
+                </div>
+              )}
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={closeDeleteModal}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors duration-200 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDeleteAccount(onDeleteSuccess)}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors duration-200 disabled:opacity-50"
+                >
+                  {isDeleting ? 'Deleting...' : 'Delete Account'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
