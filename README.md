@@ -1,38 +1,225 @@
-# GymNutrition Project README
+# GymNutrition Project
 
-Just some notes about the project.
+A nutrition and fitness tracking application to help users monitor their dietary intake and maintain healthy eating habits. Built with Django REST framework backend and React frontend.
 
-## Loging Stuff
+## What it does
 
-The backend uses python's loging thing. It writes messages about what the app is doing, like errors and stuff.
+The app lets users:
+- Track daily food intake with detailed nutritional information
+- Search for foods from a comprehensive database
+- Generate grocery lists based on their meal history
+- View nutritional data with charts and analytics
+- Calculate BMR (Basal Metabolic Rate) for personalized goals
+- Manage their food logs with a calendar interface
+
+
+## Setup Instructions
+
+### Prerequisites
+
+- Node.js (version 16 or higher)
+- Python 3.8+
+- npm or yarn
+- PostgreSQL database (for production) OR SQLite (for development)
+
+### Backend Setup
+
+1. Navigate to backend directory:
+   ```bash
+   cd IronApp/backend
+   ```
+
+2. Create and activate virtual environment:
+   ```bash
+   python -m venv env
+   # On Windows:
+   . env/Scripts/Activate.ps1
+   # On Mac/Linux:
+   source env/bin/activate
+   ```
+
+3. Install dependencies:
+   ```bash
+   python -m pip install python-dotenv
+   pip install -r requirements.txt
+   ```
+
+4. **Configure your database** (choose one):
+
+   **Option A: PostgreSQL (Recommended for Production)**
+   
+   - Install PostgreSQL from [postgresql.org](https://www.postgresql.org/download/)
+   - Create database and user:
+     ```sql
+     psql -d postgres -U postgres
+     CREATE ROLE my_user WITH LOGIN PASSWORD 'your_password';
+     ALTER ROLE my_user CREATEDB;
+     CREATE DATABASE gym_nutrition_db;
+     ```
+   - Update Django settings (`backend/settings.py`):
+     ```python
+     DATABASES = {
+         'default': {
+             'ENGINE': 'django.db.backends.postgresql',
+             'NAME': 'gym_nutrition_db',
+             'USER': 'my_user',
+             'PASSWORD': 'your_password',
+             'HOST': 'localhost',
+             'PORT': '5432',
+         }
+     }
+     ```
+
+   **Option B: SQLite (Quick Setup for Development)**
+   
+   - Update Django settings (`backend/settings.py`):
+     ```python
+     DATABASES = {
+         'default': {
+             'ENGINE': 'django.db.backends.sqlite3',
+             'NAME': BASE_DIR / 'db.sqlite3',
+         }
+     }
+     ```
+   - **Create SQLite database**: The SQLite database file (`db.sqlite3`) will be automatically created when you run migrations in the next step. No additional setup required!
+
+5. Run database migrations:
+   ```bash
+   python manage.py migrate
+   ```
+
+6. Start the Django server:
+   ```bash
+   python manage.py runserver
+   ```
+
+The backend will be available at `http://localhost:8000`
+
+### Frontend Setup
+
+1. Navigate to frontend directory:
+   ```bash
+   cd IronApp/frontend
+   ```
+
+2. Install all dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+The frontend will be available at `http://localhost:5173`
+
+## Tech Stack
+
+### Frontend
+- **React** 19.0.0 - Main UI framework
+- **Vite** - Build tool and dev server
+- **Tailwind CSS** - Styling framework
+- **React Router DOM** - Navigation and routing
+- **Recharts** - Charts and data visualization
+- **React Calendar** - Calendar component for date selection
+- **Framer Motion** - Animations
+- **Axios** - HTTP requests to backend
+- **Lucide React** - Icons
+
+### Backend
+- **Django** - Python web framework
+- **Django REST Framework** - API development
+- **JWT** - Authentication tokens
+- **PostgreSQL** - Database (production)
+- **Python Logging** - Error tracking and debugging
+
+## Testing
+
+### Backend Tests
+
+1. Make sure the backend server is running:
+   ```bash
+   cd IronApp/backend
+   python manage.py runserver
+   ```
+
+2. Open a new terminal for tests
+
+**Available Integration Tests:**
+
+**Ingredients API Test**
+- File: `test_ingredients_api.py`
+- Tests: `/food/ingredients/` endpoint
+- What it does: Gets ingredients from food items in date range
+- Run: `python test_ingredients_api.py`
+
+**Delete User Test**
+- File: `test_delete_user.py`
+- Tests: `/api/user/delete/` endpoint
+- What it does: Creates user, deletes account, verifies deletion
+- Run: `python test_delete_user.py`
+
+### Frontend Testing
+```bash
+cd IronApp/frontend
+npm run lint  # Check code quality
+```
+
+## Logging Stuff
+
+The backend uses Python's logging system. It writes messages about what the app is doing, like errors and important events.
 
 It's good to check the logs if something goes wrong.
 
-**Helpful Resorce:**
-
+**Helpful Resource:**
 - **Django Docs - Logging:** [https://docs.djangoproject.com/en/stable/topics/logging/](https://docs.djangoproject.com/en/stable/topics/logging/)
-  - This page from the django website explains how the logging works. It has examples too.
+  - This page from the Django website explains how logging works. It has examples too.
 
-## testing
+## Key Features
 
-### setup
+### Food Logging
+- Search from extensive food database
+- Log meals by date and time
+- View nutritional breakdowns and daily summaries
 
-- `cd IronApp/backend`
-- `python manage.py runserver`
-- open new terminal for tests
+### Grocery List Generator
+- Select date ranges from your food log history
+- Automatically generate shopping lists
+- Export lists as text files
 
-### integration tests
+### Progress Tracking
+- Visual charts showing nutritional intake
+- BMR calculator for personalized goals
+- Calendar interface for easy navigation
 
-**ingredients api test**
+## Resources Used
 
-- file: `test_ingredients_api.py`
-- tests: `/food/ingredients/` endpoint
-- what it does: gets ingredients from food items in date range
-- run: `python test_ingredients_api.py`
+### Authentication & Backend
+- [Authentication/Users](https://www.youtube.com/watch?v=c-QsfbznSXI)
+- [JWT token and Role based permissions](https://www.youtube.com/watch?v=5JG5PyU1CXI)
 
-**delete user test**
+### Frontend Development
+- [Download a String as a TXT File in React](https://medium.com/@iyiolaosuagwu/download-a-string-as-a-txt-file-in-react-7d55efb22536) - Used for grocery list export functionality
+- [Create Export React Frontend](https://spin.atomicobject.com/create-export-react-frontend/) - Best practices for client-side data export
+- [Login page tutorial](https://www.youtube.com/watch?v=Rp9LgClUIYc&list=LL&index=14&t=2048s)
+- [Tailwind CSS Navigation](https://tailwindcss.com/plus/ui-blocks/preview) - Stacked and dark navigation
+- [Tailwind CSS Progress Bar](https://flowbite.com/docs/components/progress/)
+- [Basal Metabolic Rate Calculator](https://www.omnicalculator.com/health/bmr-harris-benedict-equation#what-is-a-bmr-calculator)
 
-- file: `test_delete_user.py`
-- tests: `/api/user/delete/` endpoint
-- what it does: creates user, deletes account, verifies deletion
-- run: `python test_delete_user.py`
+## How to Use
+
+1. **Start both servers**: Run backend (`python manage.py runserver`) and frontend (`npm run dev`)
+2. **Create account**: Sign up on the frontend
+3. **Log food**: Use the search to find foods and add them to your daily log
+4. **View progress**: Check charts and analytics to track your nutrition
+5. **Generate grocery lists**: Select date ranges to create shopping lists from your food history
+
+## Common Issues
+
+- Make sure both backend and frontend are running on different ports
+- Check that all dependencies are installed properly
+- Look at the server logs if you encounter API errors
+- Ensure PostgreSQL is running if using production database
+
+This project helps people track their nutrition and make healthier food choices through an easy-to-use web interface.
