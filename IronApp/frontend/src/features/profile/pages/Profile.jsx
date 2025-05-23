@@ -1,9 +1,11 @@
+import { useState, useEffect } from "react";
 import useProfile from "../hooks/useProfile";
 import { FOOD_PREF_OPTIONS, ALLERGY_OPTIONS, GENDER_OPTIONS, ACTIVITY_LEVEL_OPTIONS } from "../../formConfig";
 import LoadingIndicator from "../../../components/LoadingIndicator";
 import NavBar from "../../../components/NavBar";
 import { formatHeightImperial, formatWeightImperial } from "../../../utils/unitConversion";
 import { useNavigate } from "react-router-dom";
+import ThemeToggle from "../../../components/ThemeToggle";
 
 function Profile() {
   const { profile, loading, error } = useProfile();
@@ -33,6 +35,9 @@ function Profile() {
           <div className="mb-4"><span className="font-semibold text-[color:var(--primary-color-blue)]">Activity Level:</span> {activityLabel}</div>
           <div className="mb-4"><span className="font-semibold text-[color:var(--primary-color-blue)]">Food Preferences:</span> {getCheckedLabels(profile.food_preferences, FOOD_PREF_OPTIONS)}</div>
           <div className="mb-4"><span className="font-semibold text-[color:var(--primary-color-blue)]">Allergies:</span> {getCheckedLabels(profile.allergies, ALLERGY_OPTIONS)}</div>
+          
+          <ThemeToggle />
+          
           <button
             onClick={() => navigate("/profile-edit")}
             className="w-full p-3 my-4 bg-gradient-to-r from-[var(--primary-color-teal)] to-[var(--secondary-color-green)] text-white rounded hover:opacity-90 transition-opacity duration-200 font-medium"

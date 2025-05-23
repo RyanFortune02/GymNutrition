@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@layer base {
+    html {
+        @apply transition-colors duration-300;
+    }
+    body {
+        @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-blue-500;
+    }
+}
+
 @theme {
     
     --primary-color-teal: #25B396;
