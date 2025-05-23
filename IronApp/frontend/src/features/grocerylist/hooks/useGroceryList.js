@@ -69,6 +69,102 @@ const useGroceryList = () => {
         });
     };
 
+    const exportFoodItems = () => {
+        if (!groceryData || !groceryData.food_items) return;
+
+        // Format food items data as text
+        let textContent = `FOOD ITEMS - GROCERY LIST\n`;
+        textContent += `Generated on: ${new Date().toLocaleDateString()}\n`;
+        textContent += `Date Range: ${formatDate(groceryData.date_range.start_date)} - ${formatDate(groceryData.date_range.end_date)}\n`;
+        textContent += `Total Items: ${groceryData.food_items.length}\n\n`;
+        textContent += `${'='.repeat(50)}\n\n`;
+
+        groceryData.food_items.forEach((food, index) => {
+            textContent += `${index + 1}. ${food.product_name_en || 'Unknown Product'}\n`;
+            if (food.brands) textContent += `   Brand: ${food.brands}\n`;
+            textContent += `   Servings: ${food.total_servings}\n`;
+            textContent += `\n`;
+        });
+
+        // Create and download the file
+        const element = document.createElement("a");
+        const file = new Blob([textContent], { type: "text/plain" });
+        element.href = URL.createObjectURL(file);
+        element.download = `grocery-food-items-${startDate}-to-${endDate}.txt`;
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+        URL.revokeObjectURL(element.href);
+    };
+
+    /* Export Ingredients */
+    const exportIngredients = () => {
+        if (!groceryData || !groceryData.ingredients) return;
+
+        // Format ingredients data as text
+        let textContent = `INGREDIENTS - SHOPPING LIST\n`;
+        textContent += `Generated on: ${new Date().toLocaleDateString()}\n`;
+        textContent += `Date Range: ${formatDate(groceryData.date_range.start_date)} - ${formatDate(groceryData.date_range.end_date)}\n`;
+        textContent += `Total Ingredients: ${groceryData.ingredients.length}\n\n`;
+        textContent += `${'='.repeat(50)}\n\n`;
+
+        groceryData.ingredients.forEach((ingredient, index) => {
+            textContent += `☐ ${ingredient}\n`;
+        });
+
+        // Create blob and download link
+        // A blob is a file-like object that can be used to create a download link
+        const blob = new Blob([textContent], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.download = `grocery-ingredients-${startDate}-to-${endDate}.txt`;
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
+    // Export complete grocery list (both food items and ingredients)
+    const exportCompleteList = () => {
+        if (!groceryData) return;
+
+        let textContent = `COMPLETE GROCERY LIST\n`;
+        textContent += `Generated on: ${new Date().toLocaleDateString()}\n`;
+        textContent += `Date Range: ${formatDate(groceryData.date_range.start_date)} - ${formatDate(groceryData.date_range.end_date)}\n\n`;
+        textContent += `Summary:\n`;
+        textContent += `- Food Items: ${groceryData.total_food_items}\n`;
+        textContent += `- Unique Ingredients: ${groceryData.total_ingredients}\n\n`;
+        textContent += `${'='.repeat(60)}\n\n`;
+
+        // Add food items section
+        textContent += `FOOD ITEMS (${groceryData.food_items.length})\n`;
+        textContent += `${'-'.repeat(30)}\n`;
+        groceryData.food_items.forEach((food, index) => {
+            textContent += `${index + 1}. ${food.product_name_en || 'Unknown Product'}\n`;
+            if (food.brands) textContent += `   Brand: ${food.brands}\n`;
+            textContent += `   Servings: ${food.total_servings}\n\n`;
+        });
+
+        // Add ingredients section
+        textContent += `\n${'='.repeat(60)}\n\n`;
+        textContent += `SHOPPING LIST - INGREDIENTS (${groceryData.ingredients.length})\n`;
+        textContent += `${'-'.repeat(40)}\n`;
+        groceryData.ingredients.forEach((ingredient, index) => {
+            textContent += `☐ ${ingredient}\n`;
+        });
+
+        // Create and download the file
+        const element = document.createElement("a");
+        const file = new Blob([textContent], { type: "text/plain" });
+        element.href = URL.createObjectURL(file);
+        element.download = `complete-grocery-list-${startDate}-to-${endDate}.txt`;
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+        URL.revokeObjectURL(element.href);
+    };
+
     return {
         startDate,
         setStartDate,
@@ -79,7 +175,10 @@ const useGroceryList = () => {
         error,
         generateGroceryList,
         clearData,
-        formatDate
+        formatDate,
+        exportFoodItems,
+        exportIngredients,
+        exportCompleteList
     };
 };
 

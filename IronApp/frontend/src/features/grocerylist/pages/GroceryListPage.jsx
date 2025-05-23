@@ -23,7 +23,10 @@ const GroceryListPage = () => {
         isLoading,
         error,
         generateGroceryList,
-        formatDate
+        formatDate,
+        exportFoodItems,
+        exportIngredients,
+        exportCompleteList
     } = useGroceryList();
 
     return (
@@ -60,16 +63,19 @@ const GroceryListPage = () => {
                             <GrocerySummary
                                 groceryData={groceryData}
                                 formatDate={formatDate}
+                                onExportComplete={exportCompleteList}
                             />
 
                             {/* Food Items Grid */}
                             <FoodItemsList
                                 foodItems={groceryData.food_items}
+                                onExport={exportFoodItems}
                             />
 
                             {/* Ingredients List */}
                             <IngredientsList
                                 ingredients={groceryData.ingredients}
+                                onExport={exportIngredients}
                             />
                         </div>
                     )}

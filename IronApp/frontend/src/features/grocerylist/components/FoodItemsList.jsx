@@ -1,18 +1,30 @@
 import React from 'react';
-import { Package } from 'lucide-react';
+import { Package, Download } from 'lucide-react';
 
 /* Food Items List Component
     This component displays all the food items that were consumed during
     the selected date range. Each food item shows an image, name, brand,
     and total servings consumed. 
 */
-const FoodItemsList = ({ foodItems = [] }) => {
+const FoodItemsList = ({ foodItems = [], onExport }) => {
     return (
         <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-2xl font-semibold mb-6 text-gray-800 flex items-center gap-2">
-                <Package className="text-[var(--primary-color-teal)]" size={24} />
-                Food Items ({foodItems.length})
-            </h2>
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
+                    <Package className="text-[var(--primary-color-teal)]" size={24} />
+                    Food Items ({foodItems.length})
+                </h2>
+                {/* Export Button */}
+                {foodItems.length > 0 && onExport && (
+                    <button
+                        onClick={onExport}
+                        className="flex items-center gap-2 bg-[var(--primary-color-teal)] text-white px-4 py-2 rounded-lg hover:bg-[var(--secondary-color-green)] transition-colors text-sm font-medium"
+                    >
+                        <Download size={16} />
+                        Export as TXT
+                    </button>
+                )}
+            </div>
             
             {foodItems.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
