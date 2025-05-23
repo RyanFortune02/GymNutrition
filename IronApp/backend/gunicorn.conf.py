@@ -1,15 +1,19 @@
-# gunicorn configuration file for django backend
+# gunicorn configuration file for django backend optimized for heroku
 import multiprocessing
 
-# basic configuration
-bind = "127.0.0.1:8000"
-workers = multiprocessing.cpu_count() * 2 + 1
+# basic configuration - optimized for heroku basic dyno (512mb ram)
+bind = "0.0.0.0:8000"
+workers = 2  # reduced from cpu_count formula to save memory
 worker_class = "sync"
-worker_connections = 1000
-max_requests = 1000
-max_requests_jitter = 50
-timeout = 30
+worker_connections = 100  # reduced from 1000
+max_requests = 500  # reduced from 1000
+max_requests_jitter = 25  # reduced from 50
+timeout = 120  # increased timeout for heroku
 keepalive = 2
+
+# memory optimization
+preload_app = True  # preload app to save memory
+max_worker_memory_usage = 200000  # restart workers if they use more than 200mb
 
 # logging configuration
 accesslog = "-"
