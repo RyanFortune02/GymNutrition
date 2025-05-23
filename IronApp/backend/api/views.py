@@ -104,6 +104,32 @@ class ChangePasswordView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class DeleteUserView(APIView):
+    """
+    delete user account and all associated data
+    """
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        try:
+            user = request.user
+            username = user.username
+            
+            #delete the user account (and all associated data)
+            user.delete()
+            
+            return Response(
+                {"message": f"User account '{username}' deleted successfully"}, 
+                status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            #handle any errors during deletion
+            return Response(
+                {"error": "Failed to delete user account"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
 class NutritionSummaryView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 

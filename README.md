@@ -29,3 +29,10 @@ It's good to check the logs if something goes wrong.
 - tests: `/food/ingredients/` endpoint
 - what it does: gets ingredients from food items in date range
 - run: `python test_ingredients_api.py`
+
+**delete user test**
+
+- file: `test_delete_user.py`
+- tests: `/api/user/delete/` endpoint
+- what it does: creates user, deletes account, verifies deletion
+- run: `python test_delete_user.py`

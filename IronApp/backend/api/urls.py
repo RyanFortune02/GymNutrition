@@ -1,7 +1,7 @@
 from django.urls import path
 
 from . import views
-from .views import ChangePasswordView
+from .views import ChangePasswordView, DeleteUserView
 
 urlpatterns = [
     path("notes/", views.NoteListCreate.as_view(), name="note-list"),
@@ -25,5 +25,10 @@ urlpatterns = [
         "auth/change-password/",
         ChangePasswordView.as_view(),
         name="change-password",
+    ),
+    path(
+        "user/delete/",
+        DeleteUserView.as_view(),
+        name="delete-user",
     ),
 ]
