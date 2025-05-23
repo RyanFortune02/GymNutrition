@@ -25,10 +25,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'r6=xz1h@+itz&+l00m^9ouhobam&rqqbq7g@o!szprc19t95!m'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'r6=xz1h@+itz&+l00m^9ouhobam&rqqbq7g@o!szprc19t95!m')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
 ALLOWED_HOSTS = ["*"] #Allowing all hosts, change later for prod
 
@@ -98,6 +98,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # for serving static files on heroku
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -178,11 +179,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # for heroku static file collection
+
+# whitenoise configuration for static files
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_ALL_ORIGINS = True #Allowing all origins, so should change for production
-CORS_ALLOW_CREDENTIALS = True  #Allowing credentials to be sent with requests
+CORS_ALLOW_ALL_ORIGINS = True #allowing all origins, so should change for production
+CORS_ALLOW_CREDENTIALS = True  #allowing credentials to be sent with requests
