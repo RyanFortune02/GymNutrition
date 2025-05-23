@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from openfoodfacts import API, Environment, Country, APIVersion
-from datetime import date
+from datetime import date, datetime
 import logging
 from requests.exceptions import Timeout, ConnectionError, RequestException
 
@@ -237,3 +237,134 @@ class UserRecentFoodView(APIView):
 
         # return success response
         return Response({"message": f"Food product {food_product_id} added/updated in recents."}, status=status.HTTP_200_OK)
+
+'''
+# Date Range Ingredients View
+'''
+class DateRangeIngredientsView(APIView):
+    """
+    Get ingredients and food items for a date range
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        try:
+            # get required parameters
+            start_date = request.GET.get('start_date')
+            end_date = request.GET.get('end_date')
+            
+            if not start_date or not end_date:
+                return Response({"error": "start_date and end_date are required."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # parse and validate dates
+            try:
+                start_date_obj = datetime.strptime(start_date, '%Y-%m-%d').date()
+                end_date_obj = datetime.strptime(end_date, '%Y-%m-%d').date()
+            except ValueError:
+                return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            if start_date_obj > end_date_obj:
+                return Response({"error": "start_date must be before or equal to end_date."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # get meal records in date range
+            meal_records = MealRecord.objects.filter(
+                user=request.user,
+                date__gte=start_date_obj,
+                date__lte=end_date_obj
+            ).select_related('food')
+            
+            if not meal_records.exists():
+                return Response({
+                    "ingredients": [],
+                    "food_items": [],
+                    "date_range": {"start_date": start_date, "end_date": end_date},
+                    "total_food_items": 0,
+                    "total_ingredients": 0
+                })
+            
+            # collect unique food products and ingredients
+            unique_foods = {}
+            all_ingredients = set()
+            
+            for record in meal_records:
+                food = record.food
+                # track unique foods with total servings
+                if food.id not in unique_foods:
+                    unique_foods[food.id] = {
+                        'food_object': food,
+                        'total_servings': 0
+                    }
+                unique_foods[food.id]['total_servings'] += float(record.servings)
+                
+                # parse ingredients from the food
+                if food.ingredients_text_en:
+                    ingredients = self.parse_ingredients(food.ingredients_text_en)
+                    all_ingredients.update(ingredients)
+            
+            # prepare food items using serializer
+            food_items = []
+            for food_id, food_data in unique_foods.items():
+                food_obj = food_data['food_object']
+                serializer = FoodProductSerializer(food_obj)
+                food_item = serializer.data
+                food_item['total_servings'] = food_data['total_servings']
+                food_items.append(food_item)
+            
+            # prepare response data
+            response_data = {
+                "ingredients": sorted(list(all_ingredients)),
+                "food_items": food_items,
+                "date_range": {
+                    "start_date": start_date,
+                    "end_date": end_date
+                },
+                "total_food_items": len(food_items),
+                "total_ingredients": len(all_ingredients)
+            }
+            
+            return Response(response_data)
+
+        #specific error handling
+        except ValueError as e:
+            #date parsing or other value errors
+            logger.warning(f"Date range ingredients view value error: {e}", exc_info=True)
+            return Response({"error": "Invalid parameter values provided."}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            #something else went wrong
+            logger.error(f"An unexpected error occurred in date range ingredients view: {e}", exc_info=True)
+            return Response(
+                {"error": "An unexpected error occurred while processing the request."}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def parse_ingredients(self, ingredients_text):
+        """
+        parse ingredient text into clean list
+        """
+        if not ingredients_text:
+            return []
+        
+        # common separators used in ingredient lists
+        separators = [',', ';', '(', ')', '[', ']', '.']
+        
+        # convert to lowercase for processing
+        text = ingredients_text.lower()
+        
+        # replace separators with commas
+        for sep in separators:
+            text = text.replace(sep, ',')
+        
+        # split and clean ingredients
+        ingredients = []
+        for item in text.split(','):
+            cleaned = item.strip()
+            
+            # filter out short words, numbers, percentages, e-numbers, common terms
+            if (len(cleaned) > 2 and 
+                not cleaned.isdigit() and 
+                '%' not in cleaned and
+                not (cleaned.startswith('e') and len(cleaned) > 1 and cleaned[1:].isdigit()) and
+                cleaned not in ['and', 'or', 'may', 'contain', 'traces', 'of']):
+                ingredients.append(cleaned.title())
+        
+        return ingredients
