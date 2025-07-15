@@ -301,3 +301,7 @@ It's good to check the logs if something goes wrong.
 - Ensure PostgreSQL is running if using production database
 
 This project helps people track their nutrition and make healthier food choices through an easy-to-use web interface.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
